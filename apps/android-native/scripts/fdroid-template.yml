@@ -1,0 +1,29 @@
+# fdroid-template.yml
+# Developer helper: template used to generate .fdroid.yml for local testing
+# and to copy/paste values into fdroiddata metadata.
+#
+# This file is NOT used by the official F-Droid build infrastructure.
+# Official packaging lives in the fdroiddata merge request (metadata/<appId>.yml).
+
+RepoType: git
+Repo: https://github.com/nathabee/beemage-fdroid.git
+
+Builds:
+  - versionName: 0.2.6
+    versionCode: 1002006
+    commit: v0.2.6-fdroid
+    subdir: apps/android-native
+
+    sudo: |
+      apt-get update
+      apt-get install -y nodejs npm
+
+    prebuild:
+      - ../android-web/scripts/build-android-web.sh
+
+    gradle: yes
+
+AutoUpdateMode: Version %v
+UpdateCheckMode: Tags
+CurrentVersion: 0.2.6
+CurrentVersionCode: 1002006
