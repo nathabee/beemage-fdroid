@@ -1,0 +1,34 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vite / web outputs
+dist/
+*.tsbuildinfo
+
+# Android / Gradle
+.gradle/
+build/
+**/build/
+local.properties
+*.iml
+.idea/
+*.apk
+*.aab
+captures/
+
+# macOS / Linux
+.DS_Store
+*.swp
+*.swo
+
+# Release outputs (if any local scripts create them)
+release/
+
+# Keystores / signing
+*.jks
+*.keystore
+keystore.properties
