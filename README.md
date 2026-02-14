@@ -77,6 +77,26 @@ cd apps/android-native
 
 Install/debug with Android Studio if needed.
 
+
+## F-Droid recipe helper (fdroid-template.yml)
+
+This repository includes `fdroid-template.yml` as a developer helper.
+
+- It is **not** used by the official F-Droid infrastructure.
+- Official packaging is done via `fdroiddata` (`metadata/<appId>.yml`).
+
+### Local testing using fdroidserver
+
+If you want to test builds locally using `fdroidserver`, generate a local `.fdroid.yml`
+from the template:
+
+```bash
+cp -f fdroid-template.yml .fdroid.yml
+fdroid readmeta
+fdroid build
+
+```
+
 ## F-Droid packaging
 
 F-Droid builds from a git tag. The recommended approach is:
@@ -85,6 +105,8 @@ F-Droid builds from a git tag. The recommended approach is:
 2. Commit changes to `beemage-fdroid`
 3. Tag a release (example `v0.2.5-fdroid`)
 4. Point `fdroiddata` metadata to this repository and tag
+
+
 
 ### Testing the recipe locally (recommended)
 

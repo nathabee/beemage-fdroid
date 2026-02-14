@@ -1,0 +1,369 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="./panel.css" />
+  <title>BeeMage — Explore image processing through visual pipelines</title>
+</head>
+
+<body>
+  <div id="appRoot">
+    <div class="wrap">
+      <h1>BeeMage — Explore image processing through visual pipelines</h1>
+
+
+      <div class="tabs" role="tablist" aria-label="Panel tabs">
+        <button id="tabImage" class="tab is-active" role="tab" aria-selected="true" type="button">Image</button>
+        <button id="tabPipeline" class="tab" role="tab" aria-selected="false" type="button">Pipeline</button>
+        <button id="tabBuilder" class="tab" role="tab" aria-selected="false" type="button">Builder</button>
+        <button id="tabColors" class="tab" role="tab" aria-selected="false" type="button">Colors</button>
+        <button id="tabSettings" class="tab" role="tab" aria-selected="false" type="button">Settings</button>
+        <button id="tabLogs" class="tab" role="tab" aria-selected="false" type="button">Logs</button>
+      </div>
+
+      <!-- =========================
+ CONTOUR VIEW
+ ========================= -->
+      <section id="viewImage" class="view is-active" role="tabpanel" aria-labelledby="tabImage">
+        <p class="muted">
+          Drop an image, preview it, run image extraction, and download the result.
+        </p>
+
+        <div id="dropZone" class="dropZone" role="group" aria-label="Image drop zone">
+          <div class="dropZoneInner">
+            <div class="dropTitle">Drag & drop an image here</div>
+            <div class="dropHint muted">or</div>
+            <div class="row" style="justify-content:center;">
+              <input id="fileInput" type="file" accept="image/*" />
+            </div>
+          </div>
+        </div>
+
+
+        <div class="grid4">
+          <div class="card">
+            <div class="cardTitle">Input</div>
+            <canvas id="srcCanvas" class="canvas" width="640" height="360" aria-label="Input preview"></canvas>
+          </div>
+
+
+        </div>
+
+      </section>
+
+      <!-- =========================
+ PIPELINE VIEW  
+ ========================= -->
+      <section id="viewPipeline" class="view" role="tabpanel" aria-labelledby="tabPipeline" hidden>
+        <p class="muted">
+          Experimental: a generic pipeline runner (dynamic steps + dynamic previews).
+          This tab will replace “one-tab-per-pipeline” duplication over time.
+        </p>
+
+        <div class="row" style="align-items:center;">
+          <span id="pipelineStatus" class="status">Not implemented yet</span>
+        </div>
+
+        <!-- NEW: pipeline view renders here -->
+        <div id="pipelineViewMount"></div>
+
+        <!-- Pipeline tab: TUNING (scoped) -->
+        <details class="searchBox" id="pipelineTuningBox" role="group" open>
+          <summary>Tuning</summary>
+
+          <p class="muted" style="margin-top:0;">
+            Pipeline-only tuning (mirrors central tuning state).
+          </p>
+
+          <div id="pipelineTuningMount"></div>
+        </details>
+      </section>
+
+      <!-- =========================
+ BUILDER VIEW
+ ========================= -->
+      <section id="viewBuilder" class="view" role="tabpanel" aria-labelledby="tabBuilder" hidden>
+        <p class="muted">
+          Import / export pipeline configurations (JSON). Editing will come later.
+        </p>
+
+        <div class="row" style="align-items:center; gap: 10px;">
+          <label class="fieldInline">
+            <span>Import</span>
+            <input id="builderImportFile" type="file" accept="application/json,.json" />
+          </label>
+
+          <button id="btnBuilderExport" type="button">Export JSON</button>
+
+          <span id="builderStatus" class="status">Idle</span>
+        </div>
+      </section>
+
+
+
+      <!-- =========================
+ COLORS VIEW
+ ========================= -->
+      <section id="viewColors" class="view" role="tabpanel" aria-labelledby="tabColors" hidden>
+        <p class="muted">
+          Pick a palette color, click inside a region to preview its outline, then apply the fill.
+        </p>
+
+        <details class="searchBox" id="colorsBox" role="group" open>
+          <summary>Region fill</summary>
+
+          <div class="colorsLayout">
+            <!-- Left: interactive canvas -->
+            <div class="colorsCanvasCard">
+              <div class="row" style="justify-content:space-between;">
+                <div class="muted">Click inside a region</div>
+                <span id="colorsStatus" class="status">Idle</span>
+              </div>
+
+              <canvas id="colorsCanvas" class="canvas" width="640" height="360"
+                aria-label="Color fill preview"></canvas>
+
+              <div class="row" style="margin-top:10px;">
+                <button id="btnColorsApply" type="button" disabled>Apply fill</button>
+                <button id="btnColorsCancel" type="button" disabled>Cancel preview</button>
+                <button id="btnColorsReset" type="button">Reset (reload output)</button>
+              </div>
+            </div>
+
+            <!-- Right: palette + controls -->
+            <div class="colorsSide">
+              <div class="colorGroup">
+                <div class="colorGroupTitle">Palette</div>
+                <div id="palette" class="palette" role="list" aria-label="Color palette"></div>
+                <div class="muted" style="font-size:12px; margin-top:8px;">
+                  Selected color is highlighted.
+                </div>
+              </div>
+
+              <div class="colorGroup">
+                <div class="colorGroupTitle">Edge / noise controls</div>
+
+                <label class="fieldInline">
+                  <span>Edges are dark</span>
+                  <input id="edgesDark" type="checkbox" checked />
+                </label>
+
+                <label class="fieldInline">
+                  <span>Edge threshold</span>
+                  <input id="edgeMaskThreshold" type="number" inputmode="numeric" min="0" max="255" step="1"
+                    value="80" />
+                </label>
+
+                <label class="fieldInline">
+                  <span>Gap close (px)</span>
+                  <input id="edgeDilate" type="number" inputmode="numeric" min="0" max="6" step="1" value="2" />
+                </label>
+
+                <label class="fieldInline">
+                  <span>Max region (px)</span>
+                  <input id="maxRegionPx" type="number" inputmode="numeric" min="1000" step="1000" value="200000" />
+                </label>
+              </div>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <!-- =========================
+       SETTINGS VIEW
+       ========================= -->
+      <section id="viewSettings" class="view" role="tabpanel" aria-labelledby="tabSettings" hidden>
+        <p class="muted">
+          Configure developer options and view project info.
+        </p>
+
+        <!-- GENERAL -->
+        <details class="searchBox" id="settingsGeneralBox" role="group" open>
+          <summary>General</summary>
+
+          <div class="row">
+            <label class="confirm" style="margin-right: auto;">
+              <input id="cfgShowDevTools" type="checkbox" />
+              Show developer tools (Logs, debug options)
+            </label>
+
+            <span id="settingsGeneralStatus" class="muted"></span>
+          </div>
+        </details>
+
+        <!-- DEVELOPER -->
+        <details id="devConfigDetails" class="searchBox" role="group" open>
+          <summary>Developer</summary>
+
+          <div class="devConfigGrid">
+            <!-- Column 1 -->
+            <div class="devGroup">
+              <div class="devGroupTitle">Console</div>
+
+              <label class="devRow">
+                <input id="cfgTraceConsole" type="checkbox" />
+                <span>Console trace (developer)</span>
+              </label>
+            </div>
+
+            <!-- Column 2 -->
+            <div class="devGroup">
+              <div class="devGroupTitle">Storage limits</div>
+
+              <label class="devRowSplit">
+                <span>Action log max stored entries</span>
+                <input id="cfgActionLogMax" type="number" min="100" step="100" value="5000" />
+              </label>
+
+              <label class="devRowSplit">
+                <span>Debug trace max stored entries</span>
+                <input id="cfgDebugTraceMax" type="number" min="100" step="100" value="2000" />
+              </label>
+
+              <label class="devRowSplit">
+                <span>Max failure entries per run</span>
+                <input id="cfgFailureLogsPerRun" type="number" min="0" step="10" value="50" />
+              </label>
+            </div>
+
+            <!-- Column 3 -->
+            <div class="devGroup">
+              <div class="devGroupTitle">Debug</div>
+
+              <label class="confirm">
+                <input id="logsCbDebug" type="checkbox" />
+                Debug enabled (OFF wipes all debug traces)
+              </label>
+
+              <div class="devActionsRow">
+                <button id="btnCfgResetDefaults" type="button">Reset defaults</button>
+                <span id="cfgStatus" class="muted"></span>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- ENGINE -->
+        <details class="searchBox" id="settingsEngineBox" role="group">
+          <summary>Engine</summary>
+
+          <p class="muted" style="margin-top: 0;">
+            OpenCV is demo-only. The extension build never allows injection.
+          </p>
+
+          <div class="row" style="align-items:center;">
+            <label class="switch" title="Demo only. When enabled, loads OpenCV (once) and enables OpenCV mode.">
+              <input id="cfgUseOpenCv" type="checkbox" />
+              <span class="switchTrack" aria-hidden="true"></span>
+              <span class="switchLabel">OpenCV mode</span>
+            </label>
+
+            <span id="cfgOpenCvSpinner" class="spinner is-hidden" aria-hidden="true"></span>
+            <span id="cfgOpenCvStatus" class="status">Idle</span>
+          </div>
+
+          <div class="row" style="margin-top:10px; align-items:flex-start;">
+            <div class="card" style="flex:1; min-width: 280px;">
+              <div class="cardTitle">Report</div>
+              <pre id="cfgOpenCvReport" class="report"
+                aria-label="OpenCV mode report">Toggle “OpenCV mode” to load OpenCV.</pre>
+            </div>
+
+            <div class="card" style="flex:1; min-width: 280px;">
+              <div class="cardTitle">Notes</div>
+              <div class="muted" style="font-size:12px; line-height:1.4;">
+                This checks runtime availability (“is OpenCV injected?”).
+                Per-step engine selection is configured in the segmentation pipeline later.
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- TUNING -->
+        <details class="searchBox" id="settingsTuningBox" role="group" open>
+          <summary>Tuning</summary>
+
+          <p class="muted" style="margin-top:0;">
+            Central tuning for engines and parameters. Tab UIs may expose shortcuts later.
+          </p>
+
+          <div id="tuningMount"></div>
+        </details>
+
+        <!-- ABOUT -->
+        <details class="searchBox" id="settingsAboutBox" role="group" open>
+          <summary>About</summary>
+
+          <div class="row">
+            <div style="flex:1; min-width: 180px;">
+              Version: <strong id="settingsVersion">—</strong>
+            </div>
+
+            <a id="settingsGitHubLink" class="subtle" href="https://github.com/nathabee/beemage/issues" target="_blank"
+              rel="noreferrer">GitHub</a>
+          </div>
+        </details>
+      </section>
+
+      <!-- =========================
+       LOGS VIEW
+       ========================= -->
+      <section id="viewLogs" class="view" role="tabpanel" aria-labelledby="tabLogs" hidden>
+
+        <!-- AUDIT -->
+        <h3>Audit log</h3>
+
+        <div class="row">
+          <label class="fieldInline">
+            <span>Show</span>
+            <input id="logsLimit" type="number" inputmode="numeric" min="10" step="10" value="200" />
+          </label>
+
+          <button id="btnLogsRefresh" type="button">Refresh</button>
+          <span id="logsStatus" class="status">Idle</span>
+        </div>
+
+        <div class="row">
+          <label class="fieldInline">
+            <span>Trim keep last</span>
+            <input id="logsTrimKeep" type="number" inputmode="numeric" min="0" step="100" value="2000" />
+          </label>
+
+          <button id="btnLogsTrim" type="button">Trim</button>
+          <button id="btnLogsExport" type="button">Export JSON</button>
+          <button id="btnLogsClear" type="button" class="danger">Clear</button>
+        </div>
+
+        <pre id="logsOut" class="report" aria-live="polite"></pre>
+
+        <!-- DEBUG TRACE -->
+        <h3>Debug trace</h3>
+
+        <div class="row">
+          <label class="fieldInline">
+            <span>Show</span>
+            <input id="debugLimit" type="number" inputmode="numeric" min="10" step="10" value="200" />
+          </label>
+
+          <button id="btnDebugRefresh" type="button">Refresh debug</button>
+          <button id="btnDebugExport" type="button">Export debug JSON</button>
+          <button id="btnDebugClear" type="button" class="danger">Clear debug</button>
+          <span id="debugStatus" class="status">Idle</span>
+        </div>
+
+        <pre id="debugOut" class="report" aria-live="polite"></pre>
+      </section>
+
+    </div>
+
+
+  </div>
+
+  <script type="module" src="../panel.js"></script>
+
+</body>
+
+</html>

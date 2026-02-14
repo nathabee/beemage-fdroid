@@ -1,0 +1,1121 @@
+/* src/panel/panel.css */
+
+/* -----------------------------
+   Base
+----------------------------- */
+:root {
+  --bg: #0f1115;
+  --panel: #141823;
+  --panel-2: #171c28;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-2: rgba(255, 255, 255, 0.12);
+  --text: rgba(255, 255, 255, 0.92);
+  --muted: rgba(255, 255, 255, 0.68);
+  --muted-2: rgba(255, 255, 255, 0.55);
+  --accent: #7aa2ff;
+  --danger: #ff6b6b;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --focus: 0 0 0 3px rgba(122, 162, 255, 0.28);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
+    "Segoe UI Emoji";
+}
+
+/* Keep panel comfortable in narrow widths */
+.wrap {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 14px;
+}
+
+h1 {
+  margin: 6px 0 10px;
+  font-size: 16px;
+  letter-spacing: 0.2px;
+}
+
+h3 {
+  margin: 16px 0 8px;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+/* -----------------------------
+   Utilities
+----------------------------- */
+.muted {
+  color: var(--muted);
+}
+
+.status {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.subtle {
+  color: var(--muted);
+  text-decoration: none;
+}
+.subtle:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.fieldInline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.fieldInline > span {
+  white-space: nowrap;
+}
+
+/* -----------------------------
+   Tabs
+----------------------------- */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+.tab {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--muted);
+  padding: 8px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease, transform 50ms ease;
+  user-select: none;
+}
+
+.tab:hover {
+  border-color: var(--border-2);
+  color: var(--text);
+}
+
+.tab:active {
+  transform: translateY(1px);
+}
+
+.tab.is-active,
+.tab[aria-selected="true"] {
+  background: rgba(122, 162, 255, 0.12);
+  border-color: rgba(122, 162, 255, 0.35);
+  color: var(--text);
+}
+
+.tab:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+}
+
+/* -----------------------------
+   Views
+----------------------------- */
+
+/* Hidden attribute must always hide, regardless of classes */
+[hidden] {
+  display: none !important;
+}
+
+/* Defensive: only the active view is visible */
+.view {
+  display: none;
+}
+.view.is-active {
+  display: block;
+  background: transparent;
+}
+
+/* -----------------------------
+   Details boxes (searchBox)
+----------------------------- */
+details.searchBox,
+details#devConfigDetails {
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  box-shadow: var(--shadow);
+  margin: 10px 0;
+}
+
+details.searchBox > summary,
+details#devConfigDetails > summary {
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  color: var(--text);
+  padding: 4px 2px;
+  outline: none;
+}
+
+/* Hide default marker in Chromium; keep nice affordance via custom chevron */
+details.searchBox > summary::-webkit-details-marker,
+details#devConfigDetails > summary::-webkit-details-marker {
+  display: none;
+}
+
+details.searchBox > summary::after,
+details#devConfigDetails > summary::after {
+  content: "▸";
+  float: right;
+  color: var(--muted);
+  transform: translateY(1px);
+  transition: transform 120ms ease;
+}
+
+details[open].searchBox > summary::after,
+details[open]#devConfigDetails > summary::after {
+  transform: rotate(90deg) translateY(-1px);
+}
+
+details.searchBox > summary:focus-visible,
+details#devConfigDetails > summary:focus-visible {
+  box-shadow: var(--focus);
+  border-radius: 10px;
+}
+
+/* Content spacing inside details */
+details.searchBox > *:not(summary),
+details#devConfigDetails > *:not(summary) {
+  margin-top: 10px;
+}
+
+/* Hide groups cleanly when JS toggles is-hidden */
+.is-hidden {
+  display: none !important;
+}
+
+/* -----------------------------
+   Inputs
+----------------------------- */
+input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent);
+}
+
+input[type="number"],
+input[type="text"] {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 6px 8px;
+  min-width: 90px;
+}
+
+input[type="number"]:focus-visible,
+input[type="text"]:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+  border-color: rgba(122, 162, 255, 0.35);
+}
+
+label.confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+}
+
+label.devRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+}
+
+label.devRowSplit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+}
+
+label.devRowSplit > span {
+  flex: 1;
+  min-width: 180px;
+}
+
+select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+
+select option {
+  background: var(--panel);
+  color: var(--text);
+}
+
+select:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+}
+
+/* -----------------------------
+   Buttons
+----------------------------- */
+button {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  padding: 7px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 50ms ease, opacity 120ms ease;
+}
+
+button:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: var(--border-2);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+button.danger {
+  border-color: rgba(255, 107, 107, 0.35);
+  background: rgba(255, 107, 107, 0.10);
+}
+button.danger:hover {
+  border-color: rgba(255, 107, 107, 0.55);
+  background: rgba(255, 107, 107, 0.14);
+}
+
+/* -----------------------------
+   Developer grid
+----------------------------- */
+.devConfigGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 720px) {
+  .devConfigGrid {
+    grid-template-columns: 1fr;
+  }
+  label.devRowSplit > span {
+    min-width: 0;
+  }
+}
+
+.devGroup {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.devGroupTitle {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: 0.2px;
+}
+
+.devActionsRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* -----------------------------
+   Reports (pre blocks)
+----------------------------- */
+.report {
+  margin: 10px 0 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.28);
+  padding: 10px;
+  overflow: auto;
+  max-height: 280px;
+  box-shadow: var(--shadow);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Scrollbar (Chromium) */
+.report::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+.report::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+}
+.report::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+}
+
+/* BeeMage: image tab UI */
+.dropZone {
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 12px 0;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dropZone.is-hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dropZoneInner {
+  text-align: center;
+}
+
+.dropTitle {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.grid4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+  .grid4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+
+
+.cardTitle {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.canvas {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: rgba(255, 255, 255, 0.9);
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner.is-hidden {
+  display: none;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* BeeMage: Colors tab UI */
+.colorGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .colorGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.colorGroup {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.colorGroupTitle {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: 0.2px;
+}
+
+input[type="color"] {
+  width: 44px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+}
+
+.swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border-2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Colors tab: layout */
+.colorsLayout {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .colorsLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.colorsCanvasCard {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.colorsSide {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Palette */
+.palette {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 8px;
+}
+
+.paletteItem {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid var(--border-2);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.paletteItem.is-selected {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(122, 162, 255, 0.35);
+  border-color: rgba(122, 162, 255, 0.55);
+}
+
+.qBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 62px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.qBadge--ok {
+  border-color: rgba(80, 200, 120, 0.35);
+  background: rgba(80, 200, 120, 0.12);
+  color: rgba(200, 255, 220, 0.92);
+}
+
+.qBadge--warn {
+  border-color: rgba(255, 190, 80, 0.35);
+  background: rgba(255, 190, 80, 0.12);
+  color: rgba(255, 235, 200, 0.92);
+}
+
+.qBadge--bad {
+  border-color: rgba(255, 107, 107, 0.35);
+  background: rgba(255, 107, 107, 0.12);
+  color: rgba(255, 210, 210, 0.92);
+}
+
+.qBadge--off {
+  opacity: 0.8;
+}
+
+.qBar {
+  flex: 1;
+  min-width: 160px;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.qBarFill {
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(122, 162, 255, 0.55);
+}
+
+/* -----------------------------
+   Switch (toggle)
+----------------------------- */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  color: var(--text);
+}
+
+.switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.switchTrack {
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid var(--border-2);
+  background: rgba(255, 255, 255, 0.08);
+  position: relative;
+  transition: background 120ms ease, border-color 120ms ease;
+  flex: 0 0 auto;
+}
+
+.switchTrack::after {
+  content: "";
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  transition: transform 120ms ease;
+}
+
+.switch input:checked + .switchTrack {
+  background: rgba(122, 162, 255, 0.22);
+  border-color: rgba(122, 162, 255, 0.45);
+}
+
+.switch input:checked + .switchTrack::after {
+  transform: translateX(18px);
+}
+
+.switchLabel {
+  color: var(--muted);
+}
+
+.switch input:checked ~ .switchLabel {
+  color: var(--text);
+}
+
+.switch input:focus-visible + .switchTrack {
+  box-shadow: var(--focus);
+}
+
+.switch.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Segmentation layout */
+.segLayout {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 12px;
+}
+
+.segHeaderRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.segTitle {
+  font-weight: 600;
+}
+
+.segPresetList {
+  display: grid;
+  gap: 8px;
+}
+
+.segPresetCard {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 10px;
+  cursor: grab;
+  user-select: none;
+}
+
+.segPresetCard:active {
+  cursor: grabbing;
+}
+
+.segPresetCardTitle {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.segPresetCardDesc {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.segPipeline .segSteps {
+  display: grid;
+  gap: 10px;
+}
+
+.segDropZone {
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.segDropZoneHeader {
+  font-size: 12px;
+  padding: 8px 10px;
+  opacity: 0.85;
+}
+
+.segDropZone.is-over {
+  outline: 2px solid rgba(255, 255, 255, 0.22);
+  outline-offset: 2px;
+}
+
+.segStepTitle {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.segStepAssigned {
+  font-size: 12px;
+}
+
+.segStep {
+  transition: background-color 120ms ease, outline-color 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+
+.segStep.is-active {
+  background-color: rgba(255, 255, 255, 0.06);
+  outline: 2px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.10);
+}
+
+.segStep.is-done {
+  opacity: 0.65;
+  background-color: rgba(255, 255, 255, 0.03);
+}
+/* =========================================
+   Operation cards (shared UI)
+   ========================================= */
+
+.opCard {
+  border: 1px solid var(--border-2);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* allow cards to shrink inside flex rows (very important for puzzle masks) */
+.row > .opCard {
+  min-width: 0;
+}
+
+.opCard--compact {
+  padding: 8px;
+}
+
+.opCard--clickable {
+  cursor: pointer;
+}
+
+.opCard--clickable:hover {
+  border-color: rgba(122, 162, 255, 0.35);
+}
+
+/* Wrapper used for layering outline behind content */
+.opCard__content {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+/* Inner “real” content card (used only when cardStyle=puzzleFrame) */
+.opCard__inner {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.16);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+  padding: 10px 12px;
+  min-width: 0;
+}
+
+.opCard--compact .opCard__inner {
+  padding: 8px 10px;
+}
+
+.opCard__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.opCard__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.opCard__meta {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.opBadge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  white-space: nowrap;
+
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.opBadge--id {
+  opacity: 0.85;
+}
+
+.opBadge--group {
+  opacity: 0.95;
+}
+
+.opCard__body {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.opCard__portsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.opCard__portsLabel {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.85;
+  width: 38px;
+}
+
+.opCard__ports {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.opPort {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.06);
+  white-space: nowrap;
+}
+
+/* Type backgrounds */
+.opPort--image { background: rgba(70, 130, 180, 0.18); }
+.opPort--mask  { background: rgba(34, 139, 34, 0.18); }
+.opPort--svg   { background: rgba(186, 85, 211, 0.18); }
+.opPort--unknown { background: rgba(128, 128, 128, 0.18); }
+
+/* =========================================
+   Operation ports: puzzle style (SVG glyph)
+   ========================================= */
+
+/* Accent used by glyphs (slightly subdued) */
+.opPort--image   { --port-accent: rgba(150, 200, 255, 0.72); }
+.opPort--mask    { --port-accent: rgba(160, 255, 190, 0.68); }
+.opPort--svg     { --port-accent: rgba(225, 190, 255, 0.68); }
+.opPort--unknown { --port-accent: rgba(210, 210, 210, 0.60); }
+
+/* Puzzle port container */
+.opPort--puzzle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.opPort__puzzleLabel {
+  font-size: 11px;
+  line-height: 1;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* SVG sizing */
+.opPort__glyph {
+  display: block;
+  width: 44px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.opPort__glyphTrack {
+  fill: rgba(0, 0, 0, 0.24);
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 1;
+}
+
+/* Male plug (output): filled */
+.opPort__glyphShape {
+  fill: var(--port-accent, rgba(255, 255, 255, 0.65));
+  stroke: none;
+}
+
+/* Female socket (input): stroke only */
+.opPort__glyphShape--socket {
+  fill: transparent;
+  stroke: var(--port-accent, rgba(255, 255, 255, 0.65));
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: 0.95;
+}
+
+/* =========================================
+   Puzzle-frame shell + inner card
+   ========================================= */
+
+.opCard--puzzleFrame {
+  position: relative;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+
+  /* “rand” between silhouette edge and inner card */
+  padding-left: var(--opPuzzleInsetX, 24px);
+  padding-right: var(--opPuzzleInsetX, 24px);
+  padding-top: var(--opPuzzleInsetTop, 22px);
+  padding-bottom: var(--opPuzzleInsetBottom, 22px);
+
+  min-width: 0;
+}
+
+.opCard--compact.opCard--puzzleFrame {
+  padding-left: var(--opPuzzleInsetX, 20px);
+  padding-right: var(--opPuzzleInsetX, 20px);
+  padding-top: var(--opPuzzleInsetTop, 18px);
+  padding-bottom: var(--opPuzzleInsetBottom, 18px);
+}
+
+/* Outline behind content */
+.opCard__puzzleOutline {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Centering for puzzle-frame content */
+.opCard--puzzleFrame .opCard__inner {
+  text-align: center;
+}
+
+.opCard--puzzleFrame .opCard__head {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.opCard--puzzleFrame .opCard__meta {
+  justify-content: center;
+}
+
+.opCard--puzzleFrame .opCard__portsRow {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.opCard--puzzleFrame .opCard__portsLabel {
+  width: auto;
+  text-align: center;
+}
+
+.opCard--puzzleFrame .opCard__ports {
+  justify-content: center;
+}
+
+/* =========================================
+   Builder grid helper
+   ========================================= */
+
+.opsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+/* =========================================
+   Pipeline card (reuses opCard inside)
+   ========================================= */
+
+.pipelineCard {
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.pipelineCardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pipelineCardTitle {
+  font-weight: 700;
+}
+
+.pipelineOps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pipelineConnector {
+  height: 14px;
+  margin: -2px 0 -2px 0;
+  position: relative;
+}
+
+.pipelineConnector::before {
+  content: "";
+  position: absolute;
+  left: 22px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 2px;
+}
+
+.opCard.is-disabled {
+  opacity: 0.5;
+}

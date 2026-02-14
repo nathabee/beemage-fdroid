@@ -1,0 +1,1 @@
+F-Droid readiness: add fastlane metadata + .fdroid.yml build recipe; introduce prepare-release-commit.sh to generate/commit F-Droid changelog and sync .fdroid.yml before release-all.

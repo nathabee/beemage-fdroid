@@ -1,0 +1,6 @@
+BeeMage is a client-side image-processing playground.
+
+Build, run, and understand visual pipelines—from outlines to masks and SVG-like results—directly on your device.
+No uploads. No server processing.
+
+Best results with high-contrast subjects such as drawings, silhouettes, scanned artwork, and photos with clear edges.
