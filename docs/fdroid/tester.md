@@ -229,7 +229,46 @@ does anything become visible to F-Droid maintainers.
 
 ---
  
- ## COMMAND TO TEST
+ ## HELP UNIT TEST WORKFLOW
+ 
+
+ when we test the workflow in unit test, we may want to make some change in beemage and test fdroid again
+ as long as it is not stabil, we do not send data in fdroiddata, so the label can be removed
+ let say we want to package 0.2.6 and it may tale alots of rerun
+
+---
+ 
+ ### ROLE BACK
+ 
+ (not to be done is version in production)
+
+redo version after fail creation v0.2.6 :
+
+In beemage ( canonical) run :
+
+```bash
+# delete GitHub releases (if they exist)
+gh release delete v0.2.6 -y || true 
+# delete remote tags
+git push --delete origin v0.2.6 || true 
+# delete local tags
+git tag -d v0.2.6 || true 
+echo "0.2.5" > VERSION
+scripts/bump-version.sh patch
+```
+
+In beemage-fdroid (mirror) 
+run :
+
+```bash
+git push --delete origin v0.2.6-fdroid || true 
+git tag -d v0.2.6-fdroid || true 
+```
+
+
+
+ ### COMMAND TO TEST
+
 
 run :
 
@@ -258,34 +297,5 @@ fdroid build -v de.nathabee.beemage
 
 
 ``` 
-
-
----
- 
- ## EXCEPTIONAL GO BACK
- 
- (not to be done is version in production)
-
-redo version after fail attempt to create v0.2.6 :
-
-In beemage ( canonical)
-
-
-# delete GitHub releases (if they exist)
-gh release delete v0.2.6 -y || true 
-# delete remote tags
-git push --delete origin v0.2.6 || true 
-# delete local tags
-git tag -d v0.2.6 || true 
-echo "0.2.5" > VERSION
-scripts/bump-version.sh patch
-
-
-In beemage-fdroid (mirror)
-
-git push --delete origin v0.2.6-fdroid || true
-git push --delete origin v0.2.7-fdroid || true
-git tag -d v0.2.6-fdroid || true
-git tag -d v0.2.7-fdroid || true
 
 
