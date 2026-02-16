@@ -273,36 +273,40 @@ git tag -d v0.2.6-fdroid || true
 run :
 
 ```bash
-# 1 Clean test workspace completely
+# 1) Clean test workspace completely
 rm -rf ~/coding/test/fdroid
 mkdir -p ~/coding/test/fdroid
 cd ~/coding/test/fdroid
 
+# 2) Clone mirror + checkout the tag to test
 git clone https://github.com/nathabee/beemage-fdroid.git
 cd beemage-fdroid
+git fetch --tags
 git checkout v0.2.6-fdroid
+git describe --tags
 cd ..
 
+# 3) Create local fdroidserver sandbox
 mkdir fdroiddata-local
 cd fdroiddata-local
 fdroid init
 
 mkdir -p metadata
 cp ../beemage-fdroid/apps/android-native/scripts/fdroid-template.yml metadata/de.nathabee.beemage.yml
- 
+
+# 4) Create venv + install latest fdroidserver there
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install -U pip
 python3 -m pip install -U fdroidserver
 
+# 5) Verify you're using the venv fdroid
 which fdroid
 fdroid --version
-# ------------------------------
 
+# 6) Run the actual test
 fdroid readmeta
 fdroid build -v de.nathabee.beemage
-
-
 
 ``` 
 
