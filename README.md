@@ -49,6 +49,7 @@ It intentionally excludes:
 
 ## Developer workflow
 
+
 ### Prerequisites
 
 - `bash`, `rsync`, `git`
@@ -79,41 +80,15 @@ Manual sync using synchronise-fdroid.sh is only required for debugging.
 This updates `beemage-fdroid` repository to match the selected source subsets from  `beemage` repository.
  
 
-There are now **two modes**:
+### Test
 
-#### Mode A (normal release) — what you use
 
-* run `release-all.sh`
-* mirror sync + tag happens automatically
-* no manual sync needed
-
-#### Mode B (debug / recipe iteration)
-
-* you manually tweak recipe
-* you manually run `synchronise-fdroid.sh`
-* you test locally with fdroidserver
-* no GitHub release involved
+see tester.md doc
 
 
 
 
-
-### Build locally (Android Studio style)
-
-From this mirror repository:
-
-```bash
-# 1) Build web bundle and copy into Android assets
-./apps/android-web/scripts/build-android-web.sh
-
-# 2) Build Android wrapper
-cd apps/android-native
-./gradlew :app:assembleRelease
-```
-
-Install/debug with Android Studio if needed.
-
-
+ 
 ## F-Droid recipe helper (fdroid-template.yml)
 
 This repository includes a developer helper template:
@@ -127,44 +102,6 @@ Notes:
 - We keep it here so the mirror repo always carries the exact recipe values
   that correspond to each `vX.Y.Z-fdroid` tag.
 
-### Local testing using fdroidserver (optional)
-
-To test the build locally with `fdroidserver`, create a local `.fdroid.yml` at the repo root:
-
-```bash
-cd ~/coding/project/extension/beemage-fdroid
-cp -f apps/android-native/scripts/fdroid-template.yml .fdroid.yml
-fdroid readmeta
-fdroid build
-```
-
-## F-Droid packaging
-
-F-Droid builds from a git tag. The recommended approach is:
-
-1. Sync this mirror from the canonical repo
-2. Commit changes to `beemage-fdroid`
-3. Tag a release (example `v0.2.5-fdroid`)
-4. Point `fdroiddata` metadata to this repository and tag
-
-
-
-### Testing the recipe locally (recommended)
-
-In your `fdroiddata` checkout:
-
-```bash
-fdroid readmeta
-fdroid lint <appId>
-fdroid build -l -v <appId>
-```
-
-Replace `<appId>` with your final Android applicationId (e.g. `de.nathabee.beemage`).
-
-Notes:
-
-* The Android build must not require proprietary dependencies or bundled prebuilt binaries.
-* F-Droid will sign the APK; your build should work unsigned in CI.
 
 ## Versioning policy
 

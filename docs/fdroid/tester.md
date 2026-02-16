@@ -204,7 +204,7 @@ fdroid build -v -l de.nathabee.beemage
 That will:
 
 * clone `beemage-fdroid`
-* checkout `v0.2.5-fdroid`
+* checkout `v0.2.6-fdroid`
 * run prebuild (android-web build)
 * run Gradle
 
@@ -229,3 +229,63 @@ does anything become visible to F-Droid maintainers.
 
 ---
  
+ ## COMMAND TO TEST
+
+run :
+
+```bash
+# 1 Clean test workspace completely
+rm -rf ~/coding/test/fdroid
+mkdir -p ~/coding/test/fdroid
+cd ~/coding/test/fdroid
+# 2 Clean test workspace completely
+git clone https://github.com/nathabee/beemage-fdroid.git
+cd beemage-fdroid
+git checkout v0.2.6-fdroid
+git describe --tags
+# 3 create fresh local fdroiddata
+cd ..
+mkdir fdroiddata-local
+cd fdroiddata-local
+fdroid init
+# 4 add metadata files
+mkdir metadata
+cp ../beemage-fdroid/apps/android-native/scripts/fdroid-template.yml    metadata/de.nathabee.beemage.yml
+# 5 run build test
+fdroid readmeta
+fdroid build -v de.nathabee.beemage
+
+
+
+``` 
+
+
+---
+ 
+ ## EXCEPTIONAL GO BACK
+ 
+ (not to be done is version in production)
+
+redo version after fail attempt to create v0.2.6 :
+
+In beemage ( canonical)
+
+
+# delete GitHub releases (if they exist)
+gh release delete v0.2.6 -y || true 
+# delete remote tags
+git push --delete origin v0.2.6 || true 
+# delete local tags
+git tag -d v0.2.6 || true 
+echo "0.2.5" > VERSION
+scripts/bump-version.sh patch
+
+
+In beemage-fdroid (mirror)
+
+git push --delete origin v0.2.6-fdroid || true
+git push --delete origin v0.2.7-fdroid || true
+git tag -d v0.2.6-fdroid || true
+git tag -d v0.2.7-fdroid || true
+
+
