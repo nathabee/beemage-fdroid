@@ -1,5 +1,14 @@
 # BeeMage F-Droid Source Mirror
 
+## Important Note
+
+Documentation is edited exclusively in the canonical BeeMage repository (`beemage`).
+
+The `beemage-fdroid` repository is a generated mirror.  
+Do not modify documentation files directly in the mirror.
+
+## Overview
+
 This repository is a minimal, Android-focused source mirror of the main BeeMage repository.
 
 Purpose:
@@ -12,6 +21,12 @@ The canonical development repository is:
 
 This repository is generated from the canonical repo by a sync script:
 - `beemage/scripts/synchronise-fdroid.sh`
+
+Here is a corrected and clearer version, keeping it precise and unambiguous:
+
+ 
+
+ 
 
 ## Repository layout
 

@@ -1,0 +1,1 @@
+synchronisation from beemage to beemage-fdroid add tsconfig.paths.json

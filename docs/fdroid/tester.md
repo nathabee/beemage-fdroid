@@ -2,6 +2,13 @@
 
 This document describes how to validate the Android build and F-Droid recipe **before** submitting anything to F-Droid.
 
+## Important Note
+
+Documentation is edited exclusively in the canonical BeeMage repository (`beemage`).
+
+The `beemage-fdroid` repository is a generated mirror.  
+Do not modify documentation files directly in the mirror.
+ 
 ---
 
 ## Repository Roles
