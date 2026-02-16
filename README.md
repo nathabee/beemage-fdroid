@@ -51,16 +51,37 @@ Assuming you keep both repositories next to each other:
 beemage/
 beemage-fdroid/
 
-````
+```
 
-Run from inside the canonical repo:
+The mirror is normally updated automatically via:
 
 ```bash
-cd ../beemage
-./scripts/synchronise-fdroid.sh
-````
+beemage/scripts/release-all.sh
+```
 
-This updates `../beemage-fdroid` to match the selected source subsets.
+
+Manual sync using synchronise-fdroid.sh is only required for debugging.
+This updates `beemage-fdroid` repository to match the selected source subsets from  `beemage` repository.
+ 
+
+There are now **two modes**:
+
+#### Mode A (normal release) — what you use
+
+* run `release-all.sh`
+* mirror sync + tag happens automatically
+* no manual sync needed
+
+#### Mode B (debug / recipe iteration)
+
+* you manually tweak recipe
+* you manually run `synchronise-fdroid.sh`
+* you test locally with fdroidserver
+* no GitHub release involved
+
+
+
+
 
 ### Build locally (Android Studio style)
 
@@ -80,21 +101,26 @@ Install/debug with Android Studio if needed.
 
 ## F-Droid recipe helper (fdroid-template.yml)
 
-This repository includes `fdroid-template.yml` as a developer helper.
+This repository includes a developer helper template:
 
-- It is **not** used by the official F-Droid infrastructure.
+- `apps/android-native/scripts/fdroid-template.yml`
+
+Notes:
+
+- This file is **not** used by the official F-Droid infrastructure.
 - Official packaging is done via `fdroiddata` (`metadata/<appId>.yml`).
+- We keep it here so the mirror repo always carries the exact recipe values
+  that correspond to each `vX.Y.Z-fdroid` tag.
 
-### Local testing using fdroidserver
+### Local testing using fdroidserver (optional)
 
-If you want to test builds locally using `fdroidserver`, generate a local `.fdroid.yml`
-from the template:
+To test the build locally with `fdroidserver`, create a local `.fdroid.yml` at the repo root:
 
 ```bash
-cp -f fdroid-template.yml .fdroid.yml
+cd ~/coding/project/extension/beemage-fdroid
+cp -f apps/android-native/scripts/fdroid-template.yml .fdroid.yml
 fdroid readmeta
 fdroid build
-
 ```
 
 ## F-Droid packaging
