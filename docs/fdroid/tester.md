@@ -277,20 +277,28 @@ run :
 rm -rf ~/coding/test/fdroid
 mkdir -p ~/coding/test/fdroid
 cd ~/coding/test/fdroid
-# 2 Clean test workspace completely
+
 git clone https://github.com/nathabee/beemage-fdroid.git
 cd beemage-fdroid
 git checkout v0.2.6-fdroid
-git describe --tags
-# 3 create fresh local fdroiddata
 cd ..
+
 mkdir fdroiddata-local
 cd fdroiddata-local
 fdroid init
-# 4 add metadata files
-mkdir metadata
-cp ../beemage-fdroid/apps/android-native/scripts/fdroid-template.yml    metadata/de.nathabee.beemage.yml
-# 5 run build test
+
+mkdir -p metadata
+cp ../beemage-fdroid/apps/android-native/scripts/fdroid-template.yml metadata/de.nathabee.beemage.yml
+ 
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -U pip
+python3 -m pip install -U fdroidserver
+
+which fdroid
+fdroid --version
+# ------------------------------
+
 fdroid readmeta
 fdroid build -v de.nathabee.beemage
 
