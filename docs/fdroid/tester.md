@@ -130,6 +130,9 @@ mkdir -p ~/coding/test/fdroid
 cd ~/coding/test/fdroid
 ```
 
+
+
+
 ---
 
 ### 2) Clone the mirror at the exact tag you want to test
@@ -137,7 +140,8 @@ cd ~/coding/test/fdroid
 ```bash
 git clone https://github.com/nathabee/beemage-fdroid.git
 cd beemage-fdroid
-git checkout v0.2.6-fdroid
+# if you want to test the version v0.2.5 : (adapt the version to te one you want)
+git checkout v0.2.5-fdroid
 ```
 
 You must always test from a tag.
@@ -145,41 +149,41 @@ F-Droid builds from tags, not branches.
 
 ---
 
-### 3) Generate `.fdroid.yml` from the template
+### Recreate Local `fdroiddata` Test Repo
+
+From scratch:
 
 ```bash
-cp -f apps/android-native/scripts/fdroid-template.yml .fdroid.yml
+mkdir -p ~/coding/test/fdroid
+cd ~/coding/test/fdroid
+
+mkdir fdroiddata-local
+cd fdroiddata-local
+
+fdroid init
 ```
 
-This converts the developer template into a file readable by `fdroidserver`.
+This will:
+
+* create `config.yml`
+* generate a local signing keystore
+* create `metadata/` and `repo/` directories
+
+Nothing is published anywhere. This is purely local.
 
 ---
 
-### 4) Run fdroidserver locally
+### Add Your App Metadata Again
 
-From inside:
-
-```
-~/coding/test/fdroid/beemage-fdroid
-```
-
-Run:
+Now create the metadata file:
 
 ```bash
-fdroid readmeta
-fdroid build -v
+mkdir -p metadata
+
+cp ../beemage-fdroid/apps/android-native/scripts/fdroid-template.yml    metadata/de.nathabee.beemage.yml
 ```
 
-This validates:
-
-* `subdir` correctness
-* `prebuild` section execution
-* Node/npm installation inside build environment
-* Gradle build under F-Droid assumptions
-* No hidden signing requirements
-
-If it fails, inspect the **first real error block**.
-Ignore downstream cascade errors.
+(Adjust path if needed.)
 
 ---
 
@@ -191,21 +195,27 @@ Clone your **fork** of `fdroiddata` (GitLab).
 
 Place your metadata file in:
 
-```
-metadata/de.nathabee.beemage.yml
-```
-
-Then run:
-
 ```bash
 fdroid readmeta
 fdroid lint de.nathabee.beemage
 fdroid build -v -l de.nathabee.beemage
 ```
 
+That will:
+
+* clone `beemage-fdroid`
+* checkout `v0.2.5-fdroid`
+* run prebuild (android-web build)
+* run Gradle
+
+Exactly like CI would.
+
+ 
 Options explained:
 
 * `-l` → local build only (no publishing)
+
+
 * No MR is created automatically
 * Nothing is uploaded anywhere
 

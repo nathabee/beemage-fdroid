@@ -1,0 +1,57 @@
+{
+  "format": "beemage.pipeline.userPipelines.v2",
+  "exportedAt": "2026-02-06T00:00:00.000Z",
+  "pipelines": [ 
+    {
+      "id": "user.segmentation.clean",
+      "title": "User Segmentation (clean mask)",
+      "description": "User pipeline similar to built-in Segmentation: resize → denoise → color/gray → threshold → morphology. Produces a cleaned mask.",
+      "implemented": true,
+      "ops": [
+        { "instanceId": "user.segmentation.clean.1", "opId": "op.seg.resize", "enabled": true },
+        { "instanceId": "user.segmentation.clean.2", "opId": "op.seg.denoise", "enabled": true },
+        { "instanceId": "user.segmentation.clean.3", "opId": "op.seg.color", "enabled": true },
+        { "instanceId": "user.segmentation.clean.4", "opId": "op.seg.threshold", "enabled": true },
+        { "instanceId": "user.segmentation.clean.5", "opId": "op.seg.morphology", "enabled": true }
+      ]
+    }
+  ],
+  "recipes": [
+    {
+      "pipelineId": "user.segmentation.clean",
+      "selectedRecipeId": "fast",
+      "recipes": [
+        {
+          "id": "fast",
+          "title": "Fast",
+          "updatedTs": 1738896000000,
+          "ops": [
+            {
+              "instanceId": "user.segmentation.clean.1",
+              "override": { "params": { "targetLongEdge": 700 } }
+            },
+            {
+              "instanceId": "user.segmentation.clean.2",
+              "override": { "enginePolicy": "native" }
+            }
+          ]
+        },
+        {
+          "id": "quality",
+          "title": "Quality",
+          "updatedTs": 1738896000000,
+          "ops": [
+            {
+              "instanceId": "user.segmentation.clean.1",
+              "override": { "params": { "targetLongEdge": 1200 } }
+            },
+            {
+              "instanceId": "user.segmentation.clean.2",
+              "override": { "enginePolicy": "opencv" }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

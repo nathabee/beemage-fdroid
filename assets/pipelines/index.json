@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "examples": [
+    { "id": "iconize", "title": "Iconize (PNG sizes)", "path": "assets/pipelines/iconize.json" },
+    { "id": "starter", "title": "Starter pack", "path": "assets/pipelines/starter.json" }
+  ]
+}

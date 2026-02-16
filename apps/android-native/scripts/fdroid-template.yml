@@ -9,9 +9,9 @@ RepoType: git
 Repo: https://github.com/nathabee/beemage-fdroid.git
 
 Builds:
-  - versionName: 0.2.5
-    versionCode: 1002005
-    commit: v0.2.5-fdroid
+  - versionName: 0.2.6
+    versionCode: 1002006
+    commit: v0.2.6-fdroid
     subdir: apps/android-native
 
     sudo: |
@@ -25,5 +25,5 @@ Builds:
 
 AutoUpdateMode: Version %v
 UpdateCheckMode: Tags
-CurrentVersion: 0.2.5
-CurrentVersionCode: 1002005
+CurrentVersion: 0.2.6
+CurrentVersionCode: 1002006
