@@ -13,20 +13,20 @@ Builds:
     versionCode: 1002006
     commit: v0.2.6-fdroid
     subdir: apps/android-native
-
     sudo: |
       apt-get update
       apt-get install -y nodejs npm
-
     prebuild:
       - ../android-web/scripts/build-android-web.sh
-
-    gradle: yes
+    gradle:
+      - yes
+    gradletasks:
+      - assembleRelease
 
 AutoUpdateMode: Version %v
 UpdateCheckMode: Tags
 CurrentVersion: 0.2.6
 CurrentVersionCode: 1002006
 Categories:
-  - Multimedia
+  - Graphics
 License: GPL-3.0-only

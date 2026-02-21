@@ -323,8 +323,11 @@ git tag -d v0.2.6-fdroid || true
 
 
 ### re-create version
-correct the code in 0.2.6
-re-push the version 0.2.6 after correction in beemage :
+
+
+In beemage ( canonical) :
+- correct the code in 0.2.6
+-  re-push the version 0.2.6 after correction in beemage and synchronise the beemage-fdroid repository:
 
 
 ```bash
@@ -342,28 +345,28 @@ rm -rf ~/coding/test/fdroid
 mkdir -p ~/coding/test/fdroid/fdroiddata-local/build
 cd ~/coding/test/fdroid
 
-# 2. Clone the mirror DIRECTLY into the folder F-Droid expects
-# This satisfies the "NoSuchPathError" and fixed the TypeError
+# 2. Clone the mirror into the F-Droid build folder
 git clone https://github.com/nathabee/beemage-fdroid.git \
     fdroiddata-local/build/de.nathabee.beemage
 
-# 3. Enter that folder to set the correct version tag
+# 3. Set the correct version tag
 cd fdroiddata-local/build/de.nathabee.beemage
 git checkout v0.2.6-fdroid
 cd ../..
 
-
-
-# 4. Initialize the F-Droid workspace
+# 4. Initialize the F-Droid workspace and link the system Gradle
 fdroid init
 echo "gradle: /usr/bin/gradle" >> config.yml
 
-# 5. Copy your metadata from the code we just cloned
+# 5. Make the Wrapper executable (Crucial for F-Droid to use 8.13)
+chmod +x build/de.nathabee.beemage/apps/android-native/gradlew
+
+# 6. Copy and Fix Metadata
 mkdir -p metadata
 cp build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml \
    metadata/de.nathabee.beemage.yml
 
-# 6. Run validation & Build
+# 7. Run validation & Build
 fdroid readmeta
 fdroid lint de.nathabee.beemage
 fdroid build -v -l de.nathabee.beemage
