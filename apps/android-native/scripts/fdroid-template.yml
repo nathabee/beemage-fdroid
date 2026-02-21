@@ -19,14 +19,11 @@ Builds:
     prebuild:
       - ../android-web/scripts/build-android-web.sh
     gradle:
-      - yes
-    gradletasks:
-      - assembleRelease
+      - yes 
 
 AutoUpdateMode: Version %v
 UpdateCheckMode: Tags
 CurrentVersion: 0.2.6
 CurrentVersionCode: 1002006
-Categories:
-  - Graphics
+Categories: Graphics
 License: GPL-3.0-only
