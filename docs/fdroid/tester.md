@@ -73,6 +73,80 @@ Does not contain your source code.
 
 ---
 
+## Tool installation
+
+
+### 0. Install adb
+
+On Debian/Ubuntu:
+Optional: platform-tools (adb)
+
+ 
+```bash
+sudo apt install -y adb
+```
+
+edit .bashrc , add:
+
+export ANDROID_HOME="$HOME/Android/Sdk"
+export ANDROID_SDK_ROOT="$HOME/Android/Sdk"
+export PATH="$ANDROID_HOME/platform-tools:$PATH"
+ 
+
+
+### 1. Cleanup (if necessary)
+
+Run these commands to remove all the conflicting "broken" versions of F-Droid.
+
+```bash
+# 1. Remove the old APT version (This is the one causing the hash errors)
+sudo apt purge -y fdroidserver
+sudo apt autoremove -y
+
+# 2. Ensure pipx hasn't left ghosts behind
+pipx uninstall fdroidserver || true
+rm -rf ~/.local/share/pipx/venvs/fdroidserver
+rm -f ~/.local/bin/fdroid
+
+# 3. Refresh your shell's command memory
+hash -r
+
+```
+
+---
+
+### 2. The "Once in a Lifetime" Installation (The 2026 Way)
+
+We are going to use a **Python Virtual Environment**. This keeps the "good" F-Droid tools separate from your system Python 3.12, fixing the `pkg_resources` error.
+
+```bash
+# 1. Install System Dependencies (Java and Python Venv)
+sudo apt update
+sudo apt install -y openjdk-17-jdk python3-venv python3-pip git rsync
+
+# 2. Create a PERMANENT folder for your F-Droid Tools
+mkdir -p ~/fdroid-tools
+cd ~/fdroid-tools
+
+# 3. Create the Virtual Environment
+python3 -m venv venv
+
+# 4. Activate it
+source venv/bin/activate
+
+# 5. Upgrade the core Python tools (Fixes pkg_resources)
+pip install --upgrade pip setuptools wheel
+
+# 6. Install the LATEST fdroidserver from source
+# This version knows all the new Gradle hashes (7.6.3, 8.x, 9.x)
+pip install git+https://gitlab.com/fdroid/fdroidserver.git
+
+# 7. Verify the version - Should be 2.4.3 or higher
+fdroid --version
+```
+
+
+---
 ## STEP 1 — Unit & Android Build Test (Canonical Repo)
 
 This step must already be completed in the main repository (`beemage`) before synchronising the mirror.
@@ -94,59 +168,20 @@ This ensures the application itself is correct before testing the F-Droid packag
 This guarantees reproducibility and avoids pollution.
 This step will be used to check that the mirrored repository contains the full deliverable and that the recipe is valide
 
----
-
-### 0) Install required tooling (if not already installed)
-
-On Debian/Ubuntu:
-
-
-```bash
-sudo apt update 
-sudo apt sudo apt install -y openjdk-17-jdk git rsync python3 pipx python3-venv
-
-
-```
-Optional: platform-tools (adb)
-
-```bash
-sudo apt install -y adb
-
-
-```
-
-om .bashrc , add:
-
-export ANDROID_HOME="$HOME/Android/Sdk"
-export ANDROID_SDK_ROOT="$HOME/Android/Sdk"
-export PATH="$ANDROID_HOME/platform-tools:$PATH"
-
-
-
-### Install fdroidserver (recommended: pipx)
-
-```bash
-sudo apt update
-# sudo apt install -y pipx python3-venv
-pipx install fdroidserver
-# Ensure pipx binaries are on PATH for this shell:
-
-export PATH="$HOME/.local/bin:$PATH"
-fdroid --version
-```
-
-(If you want this permanently, add the PATH export to ~/.bashrc.)
+Since we are using a Virtual Environment, you must **activate it** before running your tests. Change your commands to this:
 
 ---
 
 ### 1) Create a clean test workspace
 
 ```bash
+# ALWAYS ACTIVATE YOUR TOOL FIRST
+source ~/fdroid-tools/venv/bin/activate
+
 mkdir -p ~/coding/test/fdroid
 cd ~/coding/test/fdroid
+
 ```
-
-
 
 
 ---
@@ -169,13 +204,13 @@ F-Droid builds from tags, not branches.
 
 From scratch:
 
-```bash
-mkdir -p ~/coding/test/fdroid
+```bash 
 cd ~/coding/test/fdroid
 
 mkdir fdroiddata-local
 cd fdroiddata-local
 
+# source ~/fdroid-tools/venv/bin/activate
 fdroid init
 ```
 
@@ -245,7 +280,10 @@ does anything become visible to F-Droid maintainers.
 
 ---
  
- ## HELP UNIT TEST WORKFLOW
+
+
+
+## EXAMPLE OFUNIT TEST WORKFLOW
  
 
 ### context 
@@ -284,8 +322,8 @@ git tag -d v0.2.6-fdroid || true
 ```
 
 
-### re-create version 0.2.6
-change the ccode in 0.2.6
+### re-create version
+correct the code in 0.2.6
 re-push the version 0.2.6 after correction in beemage :
 
 
@@ -298,27 +336,35 @@ scripts/release-all.sh
 run :
 
 ```bash
-# clean test workspace
+# clean test workspace 
+source ~/fdroid-tools/venv/bin/activate
+
 rm -rf ~/coding/test/fdroid
 mkdir -p ~/coding/test/fdroid
 cd ~/coding/test/fdroid
 
+# Clone the mirror
 git clone https://github.com/nathabee/beemage-fdroid.git
 cd beemage-fdroid
 git fetch --tags
 git checkout v0.2.6-fdroid
-cd ..
 
+# Move back to test root to create the local fdroiddata structure
+cd ~/coding/test/fdroid
 mkdir fdroiddata-local
 cd fdroiddata-local
+
+# Initialize the local repo structure
 fdroid init
 
+# Copy metadata from the sibling 'beemage-fdroid' folder
 mkdir -p metadata
 cp ../beemage-fdroid/apps/android-native/scripts/fdroid-template.yml metadata/de.nathabee.beemage.yml
 
+# Run validation
 fdroid readmeta
-fdroid build -v de.nathabee.beemage
-
+fdroid lint de.nathabee.beemage
+fdroid build -v -l de.nathabee.beemage
 
 ``` 
 

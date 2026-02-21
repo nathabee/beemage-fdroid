@@ -2,6 +2,13 @@
 # apps/android-native/scripts/build-android-native.sh
 set -euo pipefail 
 
+
+# Ensure a consistent JDK for Gradle (F-Droid-friendly)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=/dev/null
+source "${SCRIPT_DIR}/env.sh"
+
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 NATIVE_DIR="${ROOT_DIR}/apps/android-native"
 OUT_DIR="${ROOT_DIR}/release"
