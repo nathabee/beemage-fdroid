@@ -130,8 +130,18 @@ info
 [[ "$APK_VC" == "$EXPECTED_VC" ]] || die "versionCode mismatch: APK=$APK_VC != expected=$EXPECTED_VC"
 
 # ---- assert SDK levels ----
-[[ "${APK_MIN_SDK:-}" == "24" ]] || die "minSdk mismatch: APK=${APK_MIN_SDK:-unknown} != 24"
-[[ "${APK_TGT_SDK:-}" == "35" ]] || die "targetSdk mismatch: APK=${APK_TGT_SDK:-unknown} != 35"
+# ---- expected SDK levels (single source of truth: gradle.properties) ----
+EXPECTED_MIN_SDK="$(grep -E '^[[:space:]]*beemage\.minSdk=' "$ANDROID_DIR/gradle.properties" | tail -n1 | cut -d= -f2 | tr -d ' \t\r\n')"
+EXPECTED_TGT_SDK="$(grep -E '^[[:space:]]*beemage\.targetSdk=' "$ANDROID_DIR/gradle.properties" | tail -n1 | cut -d= -f2 | tr -d ' \t\r\n')"
+
+[[ -n "$EXPECTED_MIN_SDK" ]] || die "Missing beemage.minSdk in $ANDROID_DIR/gradle.properties"
+[[ -n "$EXPECTED_TGT_SDK" ]] || die "Missing beemage.targetSdk in $ANDROID_DIR/gradle.properties"
+
+[[ "${APK_MIN_SDK:-}" == "$EXPECTED_MIN_SDK" ]] || die "minSdk mismatch: APK=${APK_MIN_SDK:-unknown} != ${EXPECTED_MIN_SDK}"
+[[ "${APK_TGT_SDK:-}" == "$EXPECTED_TGT_SDK" ]] || die "targetSdk mismatch: APK=${APK_TGT_SDK:-unknown} != ${EXPECTED_TGT_SDK}"
+
+
+
 
 info "OK: version + sdk level checks passed."
 info
