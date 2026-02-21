@@ -336,32 +336,34 @@ scripts/release-all.sh
 run :
 
 ```bash
-# clean test workspace 
+# 1. Environment and Cleanup
 source ~/fdroid-tools/venv/bin/activate
-
 rm -rf ~/coding/test/fdroid
-mkdir -p ~/coding/test/fdroid
+mkdir -p ~/coding/test/fdroid/fdroiddata-local/build
 cd ~/coding/test/fdroid
 
-# Clone the mirror
-git clone https://github.com/nathabee/beemage-fdroid.git
-cd beemage-fdroid
-git fetch --tags
+# 2. Clone the mirror DIRECTLY into the folder F-Droid expects
+# This satisfies the "NoSuchPathError" and fixed the TypeError
+git clone https://github.com/nathabee/beemage-fdroid.git \
+    fdroiddata-local/build/de.nathabee.beemage
+
+# 3. Enter that folder to set the correct version tag
+cd fdroiddata-local/build/de.nathabee.beemage
 git checkout v0.2.6-fdroid
+cd ../..
 
-# Move back to test root to create the local fdroiddata structure
-cd ~/coding/test/fdroid
-mkdir fdroiddata-local
-cd fdroiddata-local
 
-# Initialize the local repo structure
+
+# 4. Initialize the F-Droid workspace
 fdroid init
+echo "gradle: /usr/bin/gradle" >> config.yml
 
-# Copy metadata from the sibling 'beemage-fdroid' folder
+# 5. Copy your metadata from the code we just cloned
 mkdir -p metadata
-cp ../beemage-fdroid/apps/android-native/scripts/fdroid-template.yml metadata/de.nathabee.beemage.yml
+cp build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml \
+   metadata/de.nathabee.beemage.yml
 
-# Run validation
+# 6. Run validation & Build
 fdroid readmeta
 fdroid lint de.nathabee.beemage
 fdroid build -v -l de.nathabee.beemage

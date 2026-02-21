@@ -27,3 +27,6 @@ AutoUpdateMode: Version %v
 UpdateCheckMode: Tags
 CurrentVersion: 0.2.6
 CurrentVersionCode: 1002006
+Categories:
+  - Multimedia
+License: GPL-3.0-only
