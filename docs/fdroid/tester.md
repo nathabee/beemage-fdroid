@@ -330,8 +330,43 @@ scripts/bump-version.sh patch
 scripts/release-all.sh
 ```
 
- 
 ### UNIT TEST WORKFLOW (NEW)
+
+```bash
+# 1. Environment and Cleanup
+source ~/fdroid-tools/venv/bin/activate
+rm -rf ~/coding/test/fdroid
+mkdir -p ~/coding/test/fdroid
+cd ~/coding/test/fdroid
+
+# 2. Init
+fdroid init
+
+# 3. Fix Config (Remove the system gradle path!)
+# We want F-Droid to use your ./gradlew
+cat <<EOF >> config.yml
+lint_ignore:
+    - UnknownCategory
+    - NoNewLineAtEndOfFile
+EOF
+
+# 4. Clone & Checkout
+mkdir -p build
+git clone https://github.com/nathabee/beemage-fdroid.git build/de.nathabee.beemage
+cd build/de.nathabee.beemage && git checkout v0.2.6-fdroid && cd ~/coding/test/fdroid
+
+# 5. Metadata
+mkdir -p metadata
+cp build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml \
+   metadata/de.nathabee.beemage.yml
+
+# 6. Build
+fdroid readmeta
+fdroid build -v -l --no-tarball de.nathabee.beemage
+
+```
+ 
+### UNIT TEST WORKFLOW (OLD)
 
 ```bash
 # 1. Environment and Cleanup

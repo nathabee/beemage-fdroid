@@ -1,7 +1,7 @@
 # fdroid-template.yml
 # Developer helper: template used to generate .fdroid.yml for local testing
 # and to copy/paste values into fdroiddata metadata.
-#
+# 
 # This file is NOT used by the official F-Droid build infrastructure.
 # Official packaging lives in the fdroiddata merge request (metadata/<appId>.yml).
 
@@ -30,8 +30,8 @@ Builds:
       apt-get install -y nodejs npm
     prebuild:
       - ../android-web/scripts/build-android-web.sh 
-    gradle:
-      - assembleRelease
+    build: build: 
+      - ./gradlew clean assembleRelease
 
 UpdateCheckMode: Tags
 CurrentVersion: 0.2.6
