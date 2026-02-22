@@ -19,7 +19,6 @@ Description: |-
   This app enables the user to create his own image processing pipeline. It is built
   automatically by F-Droid.
 
-
 Builds:
   - versionName: 0.2.6
     versionCode: 1002006
@@ -30,10 +29,10 @@ Builds:
       apt-get install -y nodejs npm
     prebuild:
       - ../android-web/scripts/build-android-web.sh 
-    build: build: 
-      - ./gradlew clean assembleRelease
+    build:
+          - ./gradlew clean assembleRelease
+    gradle: yes
 
 UpdateCheckMode: Tags
 CurrentVersion: 0.2.6
 CurrentVersionCode: 1002006
-  

@@ -342,9 +342,11 @@ cd ~/coding/test/fdroid
 # 2. Init
 fdroid init
 
-# 3. Fix Config (Remove the system gradle path!)
-# We want F-Droid to use your ./gradlew
+# 3. Fix Config
+# Ensure sdk_path is set. If $ANDROID_HOME is empty, 
+# replace it with /home/nathabee/Android/Sdk 
 cat <<EOF >> config.yml
+sdk_path: ${ANDROID_HOME:-/home/nathabee/Android/Sdk}
 lint_ignore:
     - UnknownCategory
     - NoNewLineAtEndOfFile
@@ -363,130 +365,8 @@ cp build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml \
 # 6. Build
 fdroid readmeta
 fdroid build -v -l --no-tarball de.nathabee.beemage
-
-```
- 
-### UNIT TEST WORKFLOW (OLD)
-
-```bash
-# 1. Environment and Cleanup
-source ~/fdroid-tools/venv/bin/activate
-rm -rf ~/coding/test/fdroid
-mkdir -p ~/coding/test/fdroid
-cd ~/coding/test/fdroid
-
-# 2. Init
-fdroid init
-
-# 3. Fix Config (Use the local auto-generated keys)
-cat <<EOF >> config.yml
-gradle: /usr/bin/gradle
-lint_ignore:
-    - UnknownCategory
-    - NoNewLineAtEndOfFile
-EOF
-
-# 4. Setup Source
-mkdir -p build
-git clone https://github.com/nathabee/beemage-fdroid.git build/de.nathabee.beemage
-cd build/de.nathabee.beemage && git checkout v0.2.6-fdroid && cd ~/coding/test/fdroid
-
-# 5. Metadata (CRITICAL: Make sure this file exists before building)
-mkdir -p metadata
-cp ~/coding/test/fdroid/build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml \
-   metadata/de.nathabee.beemage.yml
-
-# 6. Build
-fdroid readmeta
-fdroid build -v -l --no-tarball de.nathabee.beemage
 ```
 
-### UNIT TEST WORKFLOW (OLD)
-
-```bash
-# 1. Environment and Cleanup
-source ~/fdroid-tools/venv/bin/activate
-rm -rf ~/coding/test/fdroid
-mkdir -p ~/coding/test/fdroid
-cd ~/coding/test/fdroid
-
-# 2. Initialize (Let F-Droid generate the real local keys/passwords)
-fdroid init
-
-# 3. Add only the missing pieces (Append)
-# We don't touch keystorepass or keypass; we let F-Droid use its own.
-cat <<EOF >> config.yml
-gradle: /usr/bin/gradle
-lint_ignore:
-    - UnknownCategory
-    - NoNewLineAtEndOfFile
-EOF
-
-# 4. Setup Source
-mkdir -p build
-git clone https://github.com/nathabee/beemage-fdroid.git build/de.nathabee.beemage
-cd build/de.nathabee.beemage && git checkout v0.2.6-fdroid && cd ~/coding/test/fdroid
-
-# 5. Metadata
-mkdir -p metadata
-cp build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml \
-   metadata/de.nathabee.beemage.yml
-
-# 6. Run Build
-fdroid readmeta
-fdroid build -v -l --no-tarball de.nathabee.beemage
-
-```
-
-
-### UNIT TEST WORKFLOW (OLD)
-
-```bash
-
-# exit and comm back in new terminal window
-exit
-
-# 1. Environment and Cleanup
-source ~/fdroid-tools/venv/bin/activate
-rm -rf ~/coding/test/fdroid
-mkdir -p ~/coding/test/fdroid
-cd ~/coding/test/fdroid
-
-# 2. Initialize F-Droid first
-fdroid init
-
-# 3. Clone directly into the standard F-Droid build folder
-mkdir -p build
-git clone https://github.com/nathabee/beemage-fdroid.git build/de.nathabee.beemage
-
-cd build/de.nathabee.beemage
-git checkout v0.2.6-fdroid
-cd ~/coding/test/fdroid
-
-# 4. Fix Config
-echo "" >> config.yml
-echo "lint_ignore:" >> config.yml
-echo "    - UnknownCategory" >> config.yml
-echo "    - NoNewLineAtEndOfFile" >> config.yml
-
-# 4. Update Config with Gradle and Key info
-cat <<EOF >> config.yml
-gradle: /usr/bin/gradle
-keystorepass: EfVdIGcU2E9/6UMLWJy2IFs5kz+IIQLx4QJ9V0KWSmE=
-keypass: EfVdIGcU2E9/6UMLWJy2IFs5kz+IIQLx4QJ9V0KWSmE=
-EOF
-
-# 5. Copy Metadata (Using the correct internal path)
-mkdir -p metadata
-cp build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml \
-   metadata/de.nathabee.beemage.yml
-
-# 6. Run Build
-fdroid readmeta
-fdroid build -v -l --no-tarball de.nathabee.beemage
-```
-
- ### TEST WORKFLOWCOMMANDS FDROIDFATA (OLD)
 
 ``` bash
 
