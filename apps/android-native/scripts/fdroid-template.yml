@@ -26,12 +26,15 @@ Builds:
     subdir: apps/android-native
     sudo: |
       apt-get update
-      apt-get install -y nodejs npm
+      apt-get install -y nodejs npm 
+
     prebuild:
       - ../android-web/scripts/build-android-web.sh 
+      - chmod +x gradlew
     build:
-          - ./gradlew clean assembleRelease
-    gradle: yes
+      - ./gradlew clean assembleRelease
+    gradle:
+      - yes
 
 UpdateCheckMode: Tags
 CurrentVersion: 0.2.6

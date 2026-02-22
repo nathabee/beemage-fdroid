@@ -342,11 +342,9 @@ cd ~/coding/test/fdroid
 # 2. Init
 fdroid init
 
-# 3. Fix Config
-# Ensure sdk_path is set. If $ANDROID_HOME is empty, 
-# replace it with /home/nathabee/Android/Sdk 
+# 3. Fix Config (Only the essential paths)
 cat <<EOF >> config.yml
-sdk_path: ${ANDROID_HOME:-/home/nathabee/Android/Sdk}
+gradle: /usr/bin/gradle
 lint_ignore:
     - UnknownCategory
     - NoNewLineAtEndOfFile
