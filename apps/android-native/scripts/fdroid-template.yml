@@ -30,12 +30,10 @@ Builds:
     prebuild:
       - ../android-web/scripts/build-android-web.sh
       - chmod +x gradlew
-    gradle:
-      - yes
-    scan_ignore:
-      - apps/android-web/node_modules/**
-    build:
-      - ./gradlew assembleRelease
+    gradle: 
+      - ""
+    scanignore:
+      - apps/android-web/node_modules
 
 UpdateCheckMode: Tags
 CurrentVersion: 0.2.6
