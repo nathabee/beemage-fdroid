@@ -358,6 +358,11 @@ cd ../..
 fdroid init
 echo "gradle: /usr/bin/gradle" >> config.yml
 
+echo "lint_ignore:" >> config.yml
+echo " - UnknownCategory" >> config.yml
+echo " - NoNewLineAtEndOfFile" >> config.yml
+
+
 # 5. Make the Wrapper executable (Crucial for F-Droid to use 8.13)
 chmod +x build/de.nathabee.beemage/apps/android-native/gradlew
 
@@ -366,10 +371,17 @@ mkdir -p metadata
 cp build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml \
    metadata/de.nathabee.beemage.yml
 
+
+
+
 # 7. Run validation & Build
 fdroid readmeta
-fdroid lint de.nathabee.beemage
-fdroid build -v -l de.nathabee.beemage
+fdroid lint de.nathabee.beemage 
+# -v = verbose
+# -l = local metadata
+# --no-tarball = skip source verification (faster for local testing)
+fdroid build -v -l --no-tarball de.nathabee.beemage
+
 
 ``` 
 

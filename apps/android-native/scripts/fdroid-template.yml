@@ -7,6 +7,18 @@
 
 RepoType: git
 Repo: https://github.com/nathabee/beemage-fdroid.git
+Categories:
+  - Graphics
+License: GPL-3.0-only
+WebSite: https://nathabee.github.io/beemage/
+SourceCode: https://github.com/nathabee/beemage-fdroid/
+IssueTracker: https://github.com/nathabee/beemage/issues
+Name: BeeMage App
+Summary: Image Processing App
+Description: |-
+  This app enables the user to create his own image processing pipeline. It is built
+  automatically by F-Droid.
+
 
 Builds:
   - versionName: 0.2.6
@@ -18,12 +30,13 @@ Builds:
       apt-get install -y nodejs npm
     prebuild:
       - ../android-web/scripts/build-android-web.sh
-    gradle:
-      - yes 
+    gradle: no   
+    build:
+      - chmod +x gradlew
+      - ./gradlew assembleRelease
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
 
-AutoUpdateMode: Version %v
+ 
 UpdateCheckMode: Tags
 CurrentVersion: 0.2.6
 CurrentVersionCode: 1002006
-Categories: Graphics
-License: GPL-3.0-only
