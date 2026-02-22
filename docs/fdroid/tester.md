@@ -295,12 +295,28 @@ so we make unit test on the version 0.2.6 in the beemage-fdroid, for this we nee
 so we will need to correct 0.2.6 and strat again our test on the same version
 ---
  
- ### ROLE BACK a version that we already have pushed in github
+### ROLE BACK a version that we already have pushed in github
  
 after making the version 0.2.6, i want to redo again and go back to 0.2.5 for example
 hiere would be the commands to redo version after fail creation v0.2.6 :
 
-In beemage ( canonical) run :
+#### In beemage-fdroid (mirror) 
+
+run :
+
+```bash
+git push --delete origin v0.2.6-fdroid || true 
+git tag -d v0.2.6-fdroid || true 
+```
+
+
+#### In beemage ( canonical) run :
+ 
+- erase old 0.2.6
+- correct the code in 0.2.6
+- re-push the version 0.2.6 after correction in beemage and synchronise the beemage-fdroid repository:
+
+run :
 
 ```bash
 # delete GitHub releases (if they exist)
@@ -311,28 +327,10 @@ git push --delete origin v0.2.6 || true
 git tag -d v0.2.6 || true 
 echo "0.2.5" > VERSION
 scripts/bump-version.sh patch
-```
-
-In beemage-fdroid (mirror) 
-run :
-
-```bash
-git push --delete origin v0.2.6-fdroid || true 
-git tag -d v0.2.6-fdroid || true 
-```
-
-
-### re-create version
-
-
-In beemage ( canonical) :
-- correct the code in 0.2.6
--  re-push the version 0.2.6 after correction in beemage and synchronise the beemage-fdroid repository:
-
-
-```bash
 scripts/release-all.sh
 ```
+
+ 
 
 
  ### COMMAND TO TEST
@@ -345,44 +343,98 @@ rm -rf ~/coding/test/fdroid
 mkdir -p ~/coding/test/fdroid/fdroiddata-local/build
 cd ~/coding/test/fdroid
 
-# 2. Clone the mirror into the F-Droid build folder
+# 2. Clone and Checkout
 git clone https://github.com/nathabee/beemage-fdroid.git \
     fdroiddata-local/build/de.nathabee.beemage
 
-# 3. Set the correct version tag
 cd fdroiddata-local/build/de.nathabee.beemage
 git checkout v0.2.6-fdroid
 cd ../..
 
-# 4. Initialize the F-Droid workspace and link the system Gradle
+# 3. Initialize and Configure
 fdroid init
-echo "gradle: /usr/bin/gradle" >> config.yml
 
+# Link system gradle and bypass lint
+echo "gradle: /usr/bin/gradle" >> config.yml
 echo "lint_ignore:" >> config.yml
 echo " - UnknownCategory" >> config.yml
 echo " - NoNewLineAtEndOfFile" >> config.yml
 
-
-# 5. Make the Wrapper executable (Crucial for F-Droid to use 8.13)
-chmod +x build/de.nathabee.beemage/apps/android-native/gradlew
-
-# 6. Copy and Fix Metadata
+# 4. Prepare Metadata
 mkdir -p metadata
 cp build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml \
    metadata/de.nathabee.beemage.yml
 
+# Ensure the executable bit is set on the project we just cloned
+chmod +x build/de.nathabee.beemage/apps/android-native/gradlew
 
-
-
-# 7. Run validation & Build
+# 5. Build
 fdroid readmeta
 fdroid lint de.nathabee.beemage 
-# -v = verbose
-# -l = local metadata
-# --no-tarball = skip source verification (faster for local testing)
 fdroid build -v -l --no-tarball de.nathabee.beemage
 
 
 ``` 
+### NEW
+
+``` bash
+# 1. Environment and Cleanup
+source ~/fdroid-tools/venv/bin/activate
+rm -rf ~/coding/test/fdroid
+mkdir -p ~/coding/test/fdroid/fdroiddata-local/build
+cd ~/coding/test/fdroid
+
+# 2. Clone
+git clone https://github.com/nathabee/beemage-fdroid.git \
+    fdroiddata-local/build/de.nathabee.beemage
+
+cd fdroiddata-local/build/de.nathabee.beemage
+git checkout v0.2.6-fdroid
+cd ../..
+
+# 3. Initialize
+fdroid init
 
 
+# 4. INJECT THE CLEAN TASK (This is the magic fix)
+# We append a dummy clean task to the root build.gradle.kts of the android-native project
+cat <<EOF >> fdroiddata-local/build/de.nathabee.beemage/apps/android-native/build.gradle.kts
+
+// Added by F-Droid Build Script to satisfy automatic clean
+tasks.register("clean") {
+    doLast {
+        println("Faking the clean task to satisfy F-Droid logic")
+    }
+}
+EOF
+
+# 5. FIX CONFIG
+# First, ensure we start on a new line
+echo "" >> config.yml
+
+# Use cat to append everything at once with correct spacing
+cat <<EOF >> config.yml
+sdk_path: $ANDROID_HOME
+gradle: /usr/bin/gradle
+repo_keyalias: nathalie-UPC
+keystore: keystore.p12
+keystorepass: EfVdIGcU2E9/6UMLWJy2IFs5kz+IIQLx4QJ9V0KWSmE=
+keypass: EfVdIGcU2E9/6UMLWJy2IFs5kz+IIQLx4QJ9V0KWSmE=
+lint_ignore:
+    - UnknownCategory
+    - NoNewLineAtEndOfFile
+EOF
+
+# 6. FIX METADATA
+mkdir -p metadata
+cp fdroiddata-local/build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml \
+   metadata/de.nathabee.beemage.yml
+
+# For local testing, we will just use 'gradle: yes' now because we fixed the clean issue
+sed -i 's/gradle: .*/gradle: yes/' metadata/de.nathabee.beemage.yml
+
+# 7. Build
+fdroid readmeta
+fdroid build -v -l --no-tarball de.nathabee.beemage
+
+``` 
