@@ -30,13 +30,9 @@ Builds:
       apt-get install -y nodejs npm
     prebuild:
       - ../android-web/scripts/build-android-web.sh
-    gradle: no   
-    build:
-      - chmod +x gradlew
-      - ./gradlew assembleRelease
-    output: app/build/outputs/apk/release/app-release-unsigned.apk
+    gradle: yes
 
- 
 UpdateCheckMode: Tags
 CurrentVersion: 0.2.6
 CurrentVersionCode: 1002006
+  

@@ -333,58 +333,18 @@ scripts/release-all.sh
  
 
 
- ### COMMAND TO TEST
-run :
-
-```bash
-# 1. Environment and Cleanup
-source ~/fdroid-tools/venv/bin/activate
-rm -rf ~/coding/test/fdroid
-mkdir -p ~/coding/test/fdroid/fdroiddata-local/build
-cd ~/coding/test/fdroid
-
-# 2. Clone and Checkout
-git clone https://github.com/nathabee/beemage-fdroid.git \
-    fdroiddata-local/build/de.nathabee.beemage
-
-cd fdroiddata-local/build/de.nathabee.beemage
-git checkout v0.2.6-fdroid
-cd ../..
-
-# 3. Initialize and Configure
-fdroid init
-
-# Link system gradle and bypass lint
-echo "gradle: /usr/bin/gradle" >> config.yml
-echo "lint_ignore:" >> config.yml
-echo " - UnknownCategory" >> config.yml
-echo " - NoNewLineAtEndOfFile" >> config.yml
-
-# 4. Prepare Metadata
-mkdir -p metadata
-cp build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml \
-   metadata/de.nathabee.beemage.yml
-
-# Ensure the executable bit is set on the project we just cloned
-chmod +x build/de.nathabee.beemage/apps/android-native/gradlew
-
-# 5. Build
-fdroid readmeta
-fdroid lint de.nathabee.beemage 
-fdroid build -v -l --no-tarball de.nathabee.beemage
-
-
-``` 
-### NEW
+ ### TEST WORKFLOWCOMMANDS
 
 ``` bash
+
+clear
 # 1. Environment and Cleanup
 source ~/fdroid-tools/venv/bin/activate
 rm -rf ~/coding/test/fdroid
 mkdir -p ~/coding/test/fdroid/fdroiddata-local/build
 cd ~/coding/test/fdroid
 
-# 2. Clone
+# 2. Clone and Checkout (Pulls your exact GitHub state)
 git clone https://github.com/nathabee/beemage-fdroid.git \
     fdroiddata-local/build/de.nathabee.beemage
 
@@ -392,48 +352,24 @@ cd fdroiddata-local/build/de.nathabee.beemage
 git checkout v0.2.6-fdroid
 cd ../..
 
-# 3. Initialize
+# 3. Initialize F-Droid
 fdroid init
 
-
-# 4. INJECT THE CLEAN TASK (This is the magic fix)
-# We append a dummy clean task to the root build.gradle.kts of the android-native project
-cat <<EOF >> fdroiddata-local/build/de.nathabee.beemage/apps/android-native/build.gradle.kts
-
-// Added by F-Droid Build Script to satisfy automatic clean
-tasks.register("clean") {
-    doLast {
-        println("Faking the clean task to satisfy F-Droid logic")
-    }
-}
-EOF
-
-# 5. FIX CONFIG
-# First, ensure we start on a new line
-echo "" >> config.yml
-
-# Use cat to append everything at once with correct spacing
+# 4. Minimal Config (Only what's needed for local paths and ignoring lint)
+# Note: No 'gradle: /usr/bin/gradle' here; let F-Droid find your wrapper
 cat <<EOF >> config.yml
 sdk_path: $ANDROID_HOME
-gradle: /usr/bin/gradle
-repo_keyalias: nathalie-UPC
-keystore: keystore.p12
-keystorepass: EfVdIGcU2E9/6UMLWJy2IFs5kz+IIQLx4QJ9V0KWSmE=
-keypass: EfVdIGcU2E9/6UMLWJy2IFs5kz+IIQLx4QJ9V0KWSmE=
 lint_ignore:
     - UnknownCategory
     - NoNewLineAtEndOfFile
 EOF
 
-# 6. FIX METADATA
+# 5. Copy Metadata (Uses your file directly from the repo)
 mkdir -p metadata
 cp fdroiddata-local/build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml \
    metadata/de.nathabee.beemage.yml
 
-# For local testing, we will just use 'gradle: yes' now because we fixed the clean issue
-sed -i 's/gradle: .*/gradle: yes/' metadata/de.nathabee.beemage.yml
-
-# 7. Build
+# 6. Build
 fdroid readmeta
 fdroid build -v -l --no-tarball de.nathabee.beemage
 
