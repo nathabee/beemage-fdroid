@@ -29,8 +29,9 @@ Builds:
       apt-get update
       apt-get install -y nodejs npm
     prebuild:
-      - ../android-web/scripts/build-android-web.sh
-    gradle: yes
+      - ../android-web/scripts/build-android-web.sh 
+    gradle:
+      - assembleRelease
 
 UpdateCheckMode: Tags
 CurrentVersion: 0.2.6
