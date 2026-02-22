@@ -24,17 +24,18 @@ Builds:
     versionCode: 1002006
     commit: v0.2.6-fdroid
     subdir: apps/android-native
-    sudo: |
-      apt-get update
-      apt-get install -y nodejs npm 
-
+    sudo:
+      - apt-get update
+      - apt-get install -y nodejs npm
     prebuild:
-      - ../android-web/scripts/build-android-web.sh 
+      - ../android-web/scripts/build-android-web.sh
       - chmod +x gradlew
-    build:
-      - ./gradlew clean assembleRelease
     gradle:
       - yes
+    scan_ignore:
+      - apps/android-web/node_modules/**
+    build:
+      - ./gradlew assembleRelease
 
 UpdateCheckMode: Tags
 CurrentVersion: 0.2.6

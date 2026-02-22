@@ -144,7 +144,22 @@ pip install git+https://gitlab.com/fdroid/fdroidserver.git
 # 7. Verify the version - Should be 2.4.3 or higher
 fdroid --version
 ```
+### 3. gradle 
 
+```bash
+
+# Create directory if not exists
+sudo mkdir -p /opt/gradle
+
+# Download Gradle 8.13
+wget https://services.gradle.org/distributions/gradle-8.13-bin.zip
+
+# Unzip
+sudo unzip -d /opt/gradle gradle-8.13-bin.zip
+
+# Verify the version
+/opt/gradle/gradle-8.13/bin/gradle -v
+```
 
 ---
 ## STEP 1 — Unit & Android Build Test (Canonical Repo)
@@ -175,11 +190,8 @@ Since we are using a Virtual Environment, you must **activate it** before runnin
 ### 1) Create a clean test workspace
 
 ```bash
-# ALWAYS ACTIVATE YOUR TOOL FIRST
-source ~/fdroid-tools/venv/bin/activate
+To DO
 
-mkdir -p ~/coding/test/fdroid
-cd ~/coding/test/fdroid
 
 ```
 
@@ -189,10 +201,8 @@ cd ~/coding/test/fdroid
 ### 2) Clone the mirror at the exact tag you want to test
 
 ```bash
-git clone https://github.com/nathabee/beemage-fdroid.git
-cd beemage-fdroid
-# if you want to test the version v0.2.5 : (adapt the version to te one you want)
-git checkout v0.2.5-fdroid
+To DO
+
 ```
 
 You must always test from a tag.
@@ -205,13 +215,8 @@ F-Droid builds from tags, not branches.
 From scratch:
 
 ```bash 
-cd ~/coding/test/fdroid
+To DO
 
-mkdir fdroiddata-local
-cd fdroiddata-local
-
-# source ~/fdroid-tools/venv/bin/activate
-fdroid init
 ```
 
 This will:
@@ -229,9 +234,8 @@ Nothing is published anywhere. This is purely local.
 Now create the metadata file:
 
 ```bash
-mkdir -p metadata
+To DO
 
-cp ../beemage-fdroid/apps/android-native/scripts/fdroid-template.yml    metadata/de.nathabee.beemage.yml
 ```
 
 (Adjust path if needed.)
@@ -247,9 +251,7 @@ Clone your **fork** of `fdroiddata` (GitLab).
 Place your metadata file in:
 
 ```bash
-fdroid readmeta
-fdroid lint de.nathabee.beemage
-fdroid build -v -l de.nathabee.beemage
+To DO
 ```
 
 That will:
@@ -342,25 +344,29 @@ cd ~/coding/test/fdroid
 # 2. Init
 fdroid init
 
-# 3. Fix Config (Only the essential paths)
-cat <<EOF >> config.yml
-gradle: /usr/bin/gradle
-lint_ignore:
-    - UnknownCategory
-    - NoNewLineAtEndOfFile
-EOF
+# 3. Fix Config (Keep gradle commented out!)
+sed -i 's|sdk_path: $ANDROID_HOME|sdk_path: /home/nathabee/Android/Sdk|' config.yml
+echo -e "lint_ignore:\n    - UnknownCategory\n    - NoNewLineAtEndOfFile" >> config.yml
+# Update the path in config.yml
+sed -i 's|^# gradle:.*|gradle: /opt/gradle/gradle-8.13/bin/gradle|' config.yml
+# Ensure no other gradle path is active
+sed -i 's|^gradle: /usr/bin/gradle|# gradle: /usr/bin/gradle|' config.yml
+# We point F-Droid's "system gradle" to your project's wrapper JUST before building
+WRAPPER_PATH="$(pwd)/build/de.nathabee.beemage/apps/android-native/gradlew"
+sed -i "s|^# gradle:.*|gradle: $WRAPPER_PATH|" config.yml
+
 
 # 4. Clone & Checkout
 mkdir -p build
 git clone https://github.com/nathabee/beemage-fdroid.git build/de.nathabee.beemage
 cd build/de.nathabee.beemage && git checkout v0.2.6-fdroid && cd ~/coding/test/fdroid
 
-# 5. Metadata
+# 5. Metadata (Apply the gradlew: yes fix)
 mkdir -p metadata
-cp build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml \
-   metadata/de.nathabee.beemage.yml
+cp build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml  metadata/de.nathabee.beemage.yml 
 
 # 6. Build
+
 fdroid readmeta
 fdroid build -v -l --no-tarball de.nathabee.beemage
 ```
