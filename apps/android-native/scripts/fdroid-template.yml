@@ -32,6 +32,7 @@ Builds:
       - chmod +x gradlew
     gradle: 
       - ""
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
     scanignore:
       - apps/android-web/node_modules
 
