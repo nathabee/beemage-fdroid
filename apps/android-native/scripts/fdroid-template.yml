@@ -9,15 +9,15 @@ RepoType: git
 Repo: https://github.com/nathabee/beemage-fdroid.git
 Categories:
   - Graphics
-License: GPL-3.0-only
+License: GPL-3.0-or-later
 WebSite: https://nathabee.github.io/beemage/
-SourceCode: https://github.com/nathabee/beemage-fdroid/
+SourceCode: https://github.com/nathabee/beemage
 IssueTracker: https://github.com/nathabee/beemage/issues
 Name: BeeMage App  
 Builds:
-  - versionName: 0.2.7
-    versionCode: 1002007
-    commit: v0.2.7-fdroid
+  - versionName: 0.2.8
+    versionCode: 1002008
+    commit: v0.2.8-fdroid
     subdir: apps/android-native    
     sudo:
       - apt-get update
@@ -25,6 +25,7 @@ Builds:
     prebuild:
       - ../android-web/scripts/build-android-web.sh
       - chmod +x gradlew
+# Leave gradle empty to avoid F-Droid concatenating assemble + task twice
     gradle: 
       - ""
     output: app/build/outputs/apk/release/app-release-unsigned.apk
@@ -32,5 +33,5 @@ Builds:
       - apps/android-web/node_modules
 
 UpdateCheckMode: Tags
-CurrentVersion: 0.2.7
-CurrentVersionCode: 1002007
+CurrentVersion: 0.2.8
+CurrentVersionCode: 1002008

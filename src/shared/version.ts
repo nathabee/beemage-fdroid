@@ -1,3 +1,3 @@
 // src/shared/version.ts
 // Auto-generated. Do not edit by hand.
-export const APP_VERSION = "0.2.7";
+export const APP_VERSION = "0.2.8";

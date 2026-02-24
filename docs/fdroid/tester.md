@@ -377,8 +377,7 @@ echo  -e "repo_name: Nathabee Test Repo" >> config.yml
 echo  -e "repo_description: Local test repository for Nathabee development." >> config.yml
 echo  -e "repo_icon: nathabee.png" >> config.yml
 
-# copy repository icon inside repo/icons/
-cp -p ~/coding/test/beebot_transparent.png ~/coding/test/fdroid/repo/icons/repo-icon.png
+
 
 
 # 4. Clone & Checkout
@@ -396,15 +395,18 @@ sed -i 's/\xc2\xa0/ /g' metadata/de.nathabee.beemage.yml
 fdroid readmeta
 fdroid build -v -l --no-tarball de.nathabee.beemage
 
-# 7. THE MISSING STEP: SIGNING
-# This moves the APK from build/ to repo/ AND signs it with your keystore.p12
+# 7. Publish
 fdroid publish de.nathabee.beemage
 
-# 8. Update Index
-fdroid update --create-metadata --verbose
+# 8. Setup Repo Icons (Fixing the Nathabee.png error)
+# Ensure the directory exists BEFORE copying
+mkdir -p ~/coding/test/fdroid/repo/icons
+cp -p ~/coding/test/nathabee.png ~/coding/test/fdroid/repo/icons/nathabee.png
 
-# 9. Start Server from ROOT (to match http://IP:8080/repo)
-cd ~/coding/test/fdroid
+# 9. Update Index (Force clean and verbose)
+fdroid update -c --create-metadata --verbose
+
+# 10. Start Server
 python3 -m http.server 8080
 
 ```

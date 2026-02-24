@@ -1,8 +1,9 @@
 {
   "name": "beemage-android-web",
   "private": true,
-  "version": "0.2.7",
+  "version": "0.2.8",
   "type": "module",
+  "license": "GPL-3.0-or-later",
   "scripts": {
     "dev": "vite --host",
     "build": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit && vite build",
