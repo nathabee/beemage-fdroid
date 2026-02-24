@@ -13,8 +13,7 @@ License: GPL-3.0-only
 WebSite: https://nathabee.github.io/beemage/
 SourceCode: https://github.com/nathabee/beemage-fdroid/
 IssueTracker: https://github.com/nathabee/beemage/issues
-Name: BeeMage App 
-FastlaneResDir: apps/android-native/fastlane/metadata/android
+Name: BeeMage App  
 Builds:
   - versionName: 0.2.7
     versionCode: 1002007
