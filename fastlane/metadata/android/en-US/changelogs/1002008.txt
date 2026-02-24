@@ -1,1 +1,1 @@
-change license to GPT-3.0 in all beemage repository
+Screenshots added. Keep license MIT.
