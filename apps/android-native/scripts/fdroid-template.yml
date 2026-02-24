@@ -20,9 +20,9 @@ Description: |-
   automatically by F-Droid.
 
 Builds:
-  - versionName: 0.2.6
-    versionCode: 1002006
-    commit: v0.2.6-fdroid
+  - versionName: 0.2.7
+    versionCode: 1002007
+    commit: v0.2.7-fdroid
     subdir: apps/android-native
     sudo:
       - apt-get update
@@ -37,5 +37,5 @@ Builds:
       - apps/android-web/node_modules
 
 UpdateCheckMode: Tags
-CurrentVersion: 0.2.6
-CurrentVersionCode: 1002006
+CurrentVersion: 0.2.7
+CurrentVersionCode: 1002007

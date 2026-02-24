@@ -231,12 +231,30 @@ Nothing is published anywhere. This is purely local.
 
 ### Add Your App Metadata Again
 
-Now create the metadata file:
+Now edit the metadata file, containing the configuration of our fdroid server:
 
 ```bash
-To DO
+cd ~/coding/test/fdroid
+nano config.yml 
 
 ```
+ 
+# edit the config.yml to set/add the lines: 
+ 
+
+
+gradle: /opt/gradle/gradle-8.13/bin/gradle
+repo_url	http://<192.168.xxx.xx>:8080/repo
+repo_name	Nathabee Test Repo
+repo_description	Local test repository for Nathabee development.
+sdk_path: $ANDROID_HOME
+sdk_path: /home/nathabee/Android/Sdk 
+lint_ignore:
+    - UnknownCategory
+        - NoNewLineAtEndOfFile
+        
+
+
 
 (Adjust path if needed.)
 
@@ -257,7 +275,7 @@ To DO
 That will:
 
 * clone `beemage-fdroid`
-* checkout `v0.2.6-fdroid`
+* checkout `v0.2.7-fdroid`
 * run prebuild (android-web build)
 * run Gradle
 
@@ -291,48 +309,53 @@ does anything become visible to F-Droid maintainers.
 ### context 
  when we test the workflow in unit test, we may want to make some change in beemage and test fdroid again
  as long as it is not stabil, we do not send data in fdroiddata, so the label can be removed
- let say we want to package 0.2.6 and it may tale alots of rerun
+ let say we want to package 0.2.7 and it may tale alots of rerun
 
-so we make unit test on the version 0.2.6 in the beemage-fdroid, for this we need to make the version 0.2.6 in beemage
-so we will need to correct 0.2.6 and strat again our test on the same version
+so we make unit test on the version 0.2.7 in the beemage-fdroid, for this we need to make the version 0.2.7 in beemage
+so we will need to correct 0.2.7 and strat again our test on the same version
 ---
  
 ### ROLE BACK a version that we already have pushed in github
  
-after making the version 0.2.6, i want to redo again and go back to 0.2.5 for example
-hiere would be the commands to redo version after fail creation v0.2.6 :
+after making the version 0.2.7, i want to redo again and go back to 0.2.6 for example
+hiere would be the commands to redo version after fail creation v0.2.7 :
 
 #### In beemage-fdroid (mirror) 
 
 run :
 
 ```bash
-git push --delete origin v0.2.6-fdroid || true 
-git tag -d v0.2.6-fdroid || true 
+git push --delete origin v0.2.7-fdroid || true 
+git tag -d v0.2.7-fdroid || true 
 ```
 
 
 #### In beemage ( canonical) run :
  
-- erase old 0.2.6
-- correct the code in 0.2.6
-- re-push the version 0.2.6 after correction in beemage and synchronise the beemage-fdroid repository:
+- erase old 0.2.7
+- correct the code in 0.2.7
+- re-push the version 0.2.7 after correction in beemage and synchronise the beemage-fdroid repository:
 
 run :
 
 ```bash
 # delete GitHub releases (if they exist)
-gh release delete v0.2.6 -y || true 
+gh release delete v0.2.7 -y || true 
 # delete remote tags
-git push --delete origin v0.2.6 || true 
+git push --delete origin v0.2.7 || true 
 # delete local tags
-git tag -d v0.2.6 || true 
-echo "0.2.5" > VERSION
+git tag -d v0.2.7 || true 
+echo "0.2.6" > VERSION
 scripts/bump-version.sh patch
 scripts/release-all.sh
 ```
 
-### UNIT TEST WORKFLOW (NEW)
+### UNIT TEST WORKFLOW 
+
+here we create the fdroidserver from scratch (prerequise : venv exists already)
+then he get from github the code and build app into apk
+server is configured and started
+
 
 ```bash
 # 1. Environment and Cleanup
@@ -341,71 +364,119 @@ rm -rf ~/coding/test/fdroid
 mkdir -p ~/coding/test/fdroid
 cd ~/coding/test/fdroid
 
-# 2. Init
+# 2. Init the fdroid server
 fdroid init
 
-# 3. Fix Config (Keep gradle commented out!)
+# 3. Update config.yml (Fixed echo syntax with colons)
 sed -i 's|sdk_path: $ANDROID_HOME|sdk_path: /home/nathabee/Android/Sdk|' config.yml
-echo -e "lint_ignore:\n    - UnknownCategory\n    - NoNewLineAtEndOfFile" >> config.yml
-# Update the path in config.yml
+echo -e "lint_ignore:\n    - UnknownCategory\n    - NoNewLineAtEndOfFile" >> config.yml 
 sed -i 's|^# gradle:.*|gradle: /opt/gradle/gradle-8.13/bin/gradle|' config.yml
-# Ensure no other gradle path is active
-sed -i 's|^gradle: /usr/bin/gradle|# gradle: /usr/bin/gradle|' config.yml
-# We point F-Droid's "system gradle" to your project's wrapper JUST before building
-WRAPPER_PATH="$(pwd)/build/de.nathabee.beemage/apps/android-native/gradlew"
-sed -i "s|^# gradle:.*|gradle: $WRAPPER_PATH|" config.yml
 
+# IMPORTANT: Added colons after keys for valid YAML
+echo "repo_url: http://192.168.178.27:8080/repo" >> config.yml
+echo "repo_name: Nathabee Test Repo" >> config.yml
+echo "repo_description: Local test repository for Nathabee development." >> config.yml
 
 # 4. Clone & Checkout
 mkdir -p build
 git clone https://github.com/nathabee/beemage-fdroid.git build/de.nathabee.beemage
-cd build/de.nathabee.beemage && git checkout v0.2.6-fdroid && cd ~/coding/test/fdroid
+cd build/de.nathabee.beemage && git checkout v0.2.7-fdroid && cd ~/coding/test/fdroid
 
-# 5. Metadata (Apply the gradlew: yes fix)
+# 5. Metadata
 mkdir -p metadata
-cp build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml  metadata/de.nathabee.beemage.yml 
+cp build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml metadata/de.nathabee.beemage.yml 
+# Clean invisible characters immediately
+sed -i 's/\xc2\xa0/ /g' metadata/de.nathabee.beemage.yml
 
 # 6. Build
-
 fdroid readmeta
 fdroid build -v -l --no-tarball de.nathabee.beemage
+
+# 7. THE MISSING STEP: SIGNING
+# This moves the APK from build/ to repo/ AND signs it with your keystore.p12
+fdroid publish de.nathabee.beemage
+
+# 8. Update Index
+fdroid update --create-metadata --verbose
+
+# 9. Start Server from ROOT (to match http://IP:8080/repo)
+cd ~/coding/test/fdroid
+python3 -m http.server 8080
+
 ```
 
+## unit test on a android phone
 
-``` bash
 
-clear 
-# 1. Environment and Cleanup
-source ~/fdroid-tools/venv/bin/activate
-rm -rf ~/coding/test/fdroid
-mkdir -p ~/coding/test/fdroid/fdroiddata-local/build
-cd ~/coding/test/fdroid
+You have two main ways to get this onto your phone:
 
-# 2. Clone and Checkout
-git clone https://github.com/nathabee/beemage-fdroid.git \
-    fdroiddata-local/build/de.nathabee.beemage
+### Method 1: The "Quick & Dirty" Way (ADB)
 
-cd fdroiddata-local/build/de.nathabee.beemage
-git checkout v0.2.6-fdroid
-cd ../..
+If your phone is plugged in with **USB Debugging** enabled, just push the signed APK directly. F-Droid puts the final signed files in the `repo/` directory of your test folder.
 
-# 3. Initialize F-Droid
-# This creates the config.yml with the correct sdk_path automatically
-fdroid init
+```bash
+# From ~/coding/test/fdroid
+adb install repo/de.nathabee.beemage_1002006.apk
 
-# 4. FIX CONFIG (Avoid duplicates!)
-# We only append the lint_ignore, which fdroid init does NOT create
-echo "lint_ignore:" >> config.yml
-echo "    - UnknownCategory" >> config.yml
-echo "    - NoNewLineAtEndOfFile" >> config.yml
+```
 
-# 5. Copy Metadata
-mkdir -p metadata
-cp fdroiddata-local/build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml \
-   metadata/de.nathabee.beemage.yml
+---
 
-# 6. Build
-fdroid readmeta
-fdroid build -v -l --no-tarball de.nathabee.beemage
+### Method 2: The "Full F-Droid Experience" (Local Server)
 
-``` 
+If you want to see how it looks inside the F-Droid app on your phone, you can turn your computer into a temporary F-Droid repository.
+
+**1. Generate the Repository Index**
+F-Droid needs an `index.xml` (or `index-v1.jar`) so the phone app knows what apps are available.
+
+```bash
+# Update the repo index
+fdroid update --create-metadata
+# fdroid update --create-metadata --verbose
+```
+
+**2. Start a Local Web Server**
+Python has a built-in server that is perfect for this:
+
+```bash
+cd repo
+python3 -m http.server 8080
+
+```
+
+**3. Connect your Phone**
+
+* Make sure your phone and computer are on the **same Wi-Fi**.
+* Find your computer's local IP (usually `192.168.x.x`) using `hostname -I`.
+* Open the **F-Droid app** on your phone.
+* Go to **Settings > Repositories > + (Add)**.
+* Enter the address: `http://<your-computer-ip>:8080`
+* **Turn off "Fingerprint"** (since this is a local test repo) and click "Add".
+
+---
+
+### A Note on Signing Keys
+
+Because you used a local test environment, F-Droid signed the APK with a **temporary auto-generated key** (`keystore.p12`).
+
+> **Warning:** If you previously installed a version of BeeMage signed with your own developer key (or a different debug key), Android will refuse to install this F-Droid version due to a **"Signature Mismatch"**.
+> You must **uninstall** any existing version of BeeMage from your phone before installing this one.
+
+### Is the recipe ready for the MR?
+
+Your recipe is looking great. The `gradle: - ""` hack is clever, but when you submit the MR to `fdroiddata`, a reviewer might ask you to change it to:
+
+```yaml
+    gradle:
+      - yes
+    gradletasks:
+      - assembleRelease
+
+```
+
+(The official build server is more standardized than the local CLI). But for your local testing, **don't touch a thing**—it works!
+
+Would you like me to help you verify the "Permissions" or "Features" that F-Droid detected in your APK before you send the MR?
+
+
+

@@ -39,8 +39,15 @@ const SHOW_DEV_TOOLS_KEY = "template.settings.showDevTools"; // boolean in stora
 
 const USE_OPENCV_KEY = "beemage.settings.engine.useOpenCv"; // boolean
 
-
-
+function getVersion(): string {
+ 
+  // one source of truth for all app : /src/shared/version.ts
+  return APP_VERSION || "";
+}
+ 
+  
+ 
+/*
 function getManifestVersion(): string {
   try {
     const rt: any = (globalThis as any)?.chrome?.runtime;
@@ -54,8 +61,10 @@ function getManifestVersion(): string {
 
   // Demo (no chrome.runtime.getManifest) and any other fallback
   logTrace("Settings: getManifestVersion fallback", { APP_VERSION });
+ 
   return APP_VERSION || "";
 }
+  */
 
 function toSettingsDevConfig(s: StoredDevConfig): SettingsDevConfig {
   return {
@@ -290,7 +299,7 @@ function applyDevToolsVisibility(show: boolean) {
     view.setDebugEnabledChecked(enabled);
 
     // About
-    view.setAbout(getManifestVersion() || "—", dom.settingsGitHubLinkEl?.href || "#");
+    view.setAbout(getVersion() || "—", dom.settingsGitHubLinkEl?.href || "#");
 
     // -----------------------------
     // Engine UI: demo-only (toggle mode)
