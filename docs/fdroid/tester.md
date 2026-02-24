@@ -372,9 +372,14 @@ echo -e "lint_ignore:\n    - UnknownCategory\n    - NoNewLineAtEndOfFile" >> con
 sed -i 's|^# gradle:.*|gradle: /opt/gradle/gradle-8.13/bin/gradle|' config.yml
 
 # IMPORTANT: Added colons after keys for valid YAML
-echo "repo_url: http://192.168.178.27:8080/repo" >> config.yml
-echo "repo_name: Nathabee Test Repo" >> config.yml
-echo "repo_description: Local test repository for Nathabee development." >> config.yml
+echo  -e "repo_url: http://192.168.178.27:8080/repo" >> config.yml
+echo  -e "repo_name: Nathabee Test Repo" >> config.yml
+echo  -e "repo_description: Local test repository for Nathabee development." >> config.yml
+echo  -e "repo_icon: nathabee.png" >> config.yml
+
+# copy repository icon inside repo/icons/
+cp -p ~/coding/test/beebot_transparent.png ~/coding/test/fdroid/repo/icons/repo-icon.png
+
 
 # 4. Clone & Checkout
 mkdir -p build
