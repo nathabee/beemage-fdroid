@@ -14,16 +14,12 @@ WebSite: https://nathabee.github.io/beemage/
 SourceCode: https://github.com/nathabee/beemage-fdroid/
 IssueTracker: https://github.com/nathabee/beemage/issues
 Name: BeeMage App
-Summary: Image Processing App
-Description: |-
-  This app enables the user to create his own image processing pipeline. It is built
-  automatically by F-Droid.
-
 Builds:
   - versionName: 0.2.7
     versionCode: 1002007
     commit: v0.2.7-fdroid
     subdir: apps/android-native
+    FastlaneResDir: apps/android-native/fastlane/metadata/android
     sudo:
       - apt-get update
       - apt-get install -y nodejs npm

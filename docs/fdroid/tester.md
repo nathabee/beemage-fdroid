@@ -331,10 +331,6 @@ git tag -d v0.2.7-fdroid || true
 
 
 #### In beemage ( canonical) run :
- 
-- erase old 0.2.7
-- correct the code in 0.2.7
-- re-push the version 0.2.7 after correction in beemage and synchronise the beemage-fdroid repository:
 
 run :
 
@@ -351,6 +347,9 @@ scripts/release-all.sh
 ```
 
 ### UNIT TEST WORKFLOW 
+
+
+#### Workflow 1:  DROP-RECREATE FDROIDSERVER AND ADD NEW APP
 
 here we create the fdroidserver from scratch (prerequise : venv exists already)
 then he get from github the code and build app into apk
@@ -405,6 +404,82 @@ python3 -m http.server 8080
 
 ```
 
+
+
+
+This is a great way to organize your development. Having a clean "factory reset" script versus a "fast update" script will save you hours of troubleshooting.
+
+One quick detail for your scripts: In your `config.yml` section, I changed `echo` to `sed` or `grep` checks. Using `echo >>` repeatedly on an existing file can accidentally double up your configuration lines.
+
+---
+
+#### Workflow 2:  DROP-RECREATE FDROIDSERVER
+
+**Goal:** Reset the server infrastructure without necessarily re-cloning the app code if you already have it, or simply cleaning the environment for a fresh start.
+
+```bash
+# 1. Environment and Cleanup
+source ~/fdroid-tools/venv/bin/activate
+rm -rf ~/coding/test/fdroid
+mkdir -p ~/coding/test/fdroid
+cd ~/coding/test/fdroid
+
+# 2. Init and Config
+fdroid init
+sed -i 's|sdk_path: $ANDROID_HOME|sdk_path: /home/nathabee/Android/Sdk|' config.yml
+sed -i 's|^# gradle:.*|gradle: /opt/gradle/gradle-8.13/bin/gradle|' config.yml
+
+# Use tee to overwrite/set these cleanly
+cat <<EOF >> config.yml
+repo_url: http://192.168.178.27:8080/repo
+repo_name: Nathabee Test Repo
+repo_description: Freshly Recreated Server
+lint_ignore:
+    - UnknownCategory
+    - NoNewLineAtEndOfFile
+EOF
+
+# 3. Ready for Metadata
+mkdir -p metadata
+echo "Server is reset. Now copy your .yml files to metadata/ and run builds."
+
+```
+
+---
+
+#### Workflow 3: UPDATE APP IN EXISTING FDROIDSERVER
+
+**Goal:** You’ve made a code change or bumped the version. You don't want to delete everything; you just want to pull the new code, build, and push the update to your phone.
+
+```bash
+# 1. Environment
+source ~/fdroid-tools/venv/bin/activate
+cd ~/coding/test/fdroid
+
+# 2. Update Source Code
+cd build/de.nathabee.beemage
+git fetch --tags
+git checkout v0.2.7-fdroid
+cd ~/coding/test/fdroid
+
+# 3. Sync Metadata
+cp build/de.nathabee.beemage/apps/android-native/scripts/fdroid-template.yml metadata/de.nathabee.beemage.yml 
+sed -i 's/\xc2\xa0/ /g' metadata/de.nathabee.beemage.yml
+
+# --- THE FIX: FORCING THE BUILD ---
+# Delete any previous versions of this specific build so F-Droid starts over
+rm -f repo/de.nathabee.beemage_1002007.apk
+rm -f unsigned/de.nathabee.beemage_1002007.apk
+
+# 4. Build & Publish
+# Now it should show "INFO: Building de.nathabee.beemage:1002007"
+fdroid build -v -l --no-tarball de.nathabee.beemage
+fdroid publish de.nathabee.beemage
+fdroid update --create-metadata
+```
+
+---
+ 
 ## unit test on a android phone
 
 
