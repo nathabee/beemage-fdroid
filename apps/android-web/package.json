@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.2.8",
   "type": "module",
-  "license": "GPL-3.0-or-later",
+  "license": "MIT",
   "scripts": {
     "dev": "vite --host",
     "build": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit && vite build",

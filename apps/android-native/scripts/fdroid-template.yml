@@ -9,7 +9,7 @@ RepoType: git
 Repo: https://github.com/nathabee/beemage-fdroid.git
 Categories:
   - Graphics
-License: GPL-3.0-or-later
+License: MIT
 WebSite: https://nathabee.github.io/beemage/
 SourceCode: https://github.com/nathabee/beemage
 IssueTracker: https://github.com/nathabee/beemage/issues

@@ -275,7 +275,7 @@ To DO
 That will:
 
 * clone `beemage-fdroid`
-* checkout `v0.2.7-fdroid`
+* checkout `v0.2.8-fdroid`
 * run prebuild (android-web build)
 * run Gradle
 
@@ -309,24 +309,24 @@ does anything become visible to F-Droid maintainers.
 ### context 
  when we test the workflow in unit test, we may want to make some change in beemage and test fdroid again
  as long as it is not stabil, we do not send data in fdroiddata, so the label can be removed
- let say we want to package 0.2.7 and it may tale alots of rerun
+ let say we want to package 0.2.8 and it may tale alots of rerun
 
-so we make unit test on the version 0.2.7 in the beemage-fdroid, for this we need to make the version 0.2.7 in beemage
-so we will need to correct 0.2.7 and strat again our test on the same version
+so we make unit test on the version 0.2.8 in the beemage-fdroid, for this we need to make the version 0.2.8 in beemage
+so we will need to correct 0.2.8 and strat again our test on the same version
 ---
  
 ### ROLE BACK a version that we already have pushed in github
  
-after making the version 0.2.7, i want to redo again and go back to 0.2.6 for example
-hiere would be the commands to redo version after fail creation v0.2.7 :
+after making the version 0.2.8, i want to redo again and go back to 0.2.7 for example
+hiere would be the commands to redo version after fail creation v0.2.8 :
 
 #### In beemage-fdroid (mirror) 
 
 run :
 
 ```bash
-git push --delete origin v0.2.7-fdroid || true 
-git tag -d v0.2.7-fdroid || true 
+git push --delete origin v0.2.8-fdroid || true 
+git tag -d v0.2.8-fdroid || true 
 ```
 
  
@@ -336,12 +336,12 @@ run :
 
 ```bash
 # delete GitHub releases (if they exist)
-gh release delete v0.2.7 -y || true 
+gh release delete v0.2.8 -y || true 
 # delete remote tags
-git push --delete origin v0.2.7 || true 
+git push --delete origin v0.2.8 || true 
 # delete local tags
-git tag -d v0.2.7 || true 
-echo "0.2.6" > VERSION
+git tag -d v0.2.8 || true 
+echo "0.2.7" > VERSION
 scripts/bump-version.sh patch
 scripts/release-all.sh
 ```
@@ -383,7 +383,7 @@ echo  -e "repo_icon: nathabee.png" >> config.yml
 # 4. Clone & Checkout
 mkdir -p build
 git clone https://github.com/nathabee/beemage-fdroid.git build/de.nathabee.beemage
-cd build/de.nathabee.beemage && git checkout v0.2.7-fdroid && cd ~/coding/test/fdroid
+cd build/de.nathabee.beemage && git checkout v0.2.8-fdroid && cd ~/coding/test/fdroid
 
 # 5. Metadata
 mkdir -p metadata
@@ -466,7 +466,7 @@ cd ~/coding/test/fdroid
 # 2. Update Source Code
 cd build/de.nathabee.beemage
 git fetch --tags
-git checkout v0.2.7-fdroid
+git checkout v0.2.8-fdroid
 cd ~/coding/test/fdroid
 
 # 3. Sync Metadata
@@ -475,8 +475,8 @@ sed -i 's/\xc2\xa0/ /g' metadata/de.nathabee.beemage.yml
 
 # --- THE FIX: FORCING THE BUILD ---
 # Delete any previous versions of this specific build so F-Droid starts over
-rm -f repo/de.nathabee.beemage_1002007.apk
-rm -f unsigned/de.nathabee.beemage_1002007.apk
+rm -f repo/de.nathabee.beemage_1002008.apk
+rm -f unsigned/de.nathabee.beemage_1002008.apk
 
 # 4. Build & Publish
 # Now it should show "INFO: Building de.nathabee.beemage:1002007"
@@ -498,7 +498,7 @@ If your phone is plugged in with **USB Debugging** enabled, just push the signed
 
 ```bash
 # From ~/coding/test/fdroid
-adb install repo/de.nathabee.beemage_1002006.apk
+adb install repo/de.nathabee.beemage_1002008.apk
 
 ```
 
