@@ -18,8 +18,7 @@ Builds:
   - versionName: 0.2.7
     versionCode: 1002007
     commit: v0.2.7-fdroid
-    subdir: apps/android-native
-    FastlaneResDir: apps/android-native/fastlane/metadata/android
+    subdir: apps/android-native 
     sudo:
       - apt-get update
       - apt-get install -y nodejs npm

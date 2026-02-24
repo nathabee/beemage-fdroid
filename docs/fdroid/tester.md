@@ -329,7 +329,7 @@ git push --delete origin v0.2.7-fdroid || true
 git tag -d v0.2.7-fdroid || true 
 ```
 
-
+ 
 #### In beemage ( canonical) run :
 
 run :
