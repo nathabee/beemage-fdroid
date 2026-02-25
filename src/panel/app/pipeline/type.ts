@@ -6,7 +6,12 @@ export type PipelineId = string;
 export type OpSpecId = string;
 export type OpInstanceId = string;
 
-export type ArtifactType = "image" | "mask" | "svg";
+/**
+ * NOTE:
+ * - "imageList" is a collection of images for multi-entry workflows (e.g. images -> pdf).
+ * - "pdf" is a binary artifact (Uint8Array) containing an application/pdf payload.
+ */
+export type ArtifactType = "image" | "mask" | "svg" | "imageList" | "pdf";
 
 export type ImageArtifact = {
   type: "image";
@@ -31,7 +36,27 @@ export type SvgArtifact = {
   svg: string;
 };
 
-export type Artifact = ImageArtifact | MaskArtifact | SvgArtifact;
+export type ImageListArtifact = {
+  type: "imageList";
+  /**
+   * Ordered images. Each entry is a normal ImageArtifact.
+   * You can extend later with optional per-item names/metadata.
+   */
+  items: ReadonlyArray<ImageArtifact>;
+};
+
+export type PdfArtifact = {
+  type: "pdf";
+  mime: "application/pdf";
+  bytes: Uint8Array;
+
+  /**
+   * Optional: keep provenance for UX, not required for execution.
+   */
+  filenameHint?: string;
+};
+
+export type Artifact = ImageArtifact | MaskArtifact | SvgArtifact | ImageListArtifact | PdfArtifact;
 
 export type OpIO = {
   input: ArtifactType;
@@ -85,10 +110,7 @@ export type JsOpSpec = {
   group?: string;
   tags?: ReadonlyArray<string>;
 
-  run: (args: {
-    input: Artifact;
-    params: Record<string, ParamValue>;
-  }) => Promise<Artifact> | Artifact;
+  run: (args: { input: Artifact; params: Record<string, ParamValue> }) => Promise<Artifact> | Artifact;
 };
 
 export type OpSpec = DispatchOpSpec | JsOpSpec;
@@ -136,7 +158,7 @@ export type PipelineDef = {
    */
   ops: ReadonlyArray<PipelineOpInstance>;
 };
- 
+
 // -----------------------------
 // Catalogue (built-ins + process library + optional user pipelines)
 // -----------------------------
@@ -205,6 +227,13 @@ export type PipelineRunnerDeps = {
   debug: (message: string, meta?: Record<string, unknown>) => void;
 };
 
-export function artifactDims(a: Artifact): { width: number; height: number } {
-  return { width: a.width, height: a.height };
+/**
+ * Only artifacts with intrinsic pixel dimensions have dims.
+ * (imageList/pdf don’t.)
+ */
+export function artifactDims(a: Artifact): { width: number; height: number } | null {
+  if (a.type === "image" || a.type === "mask" || a.type === "svg") {
+    return { width: a.width, height: a.height };
+  }
+  return null;
 }

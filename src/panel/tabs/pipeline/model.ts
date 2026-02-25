@@ -65,6 +65,8 @@ export type PipelineVm = {
   totalOps: number;
 };
 
+ 
+
 export type PipelineModel = {
   getVm(): PipelineVm;
 
@@ -73,11 +75,13 @@ export type PipelineModel = {
 
   setInputImageData(img: ImageData): void;
 
+  // NEW:
+  setInputArtifact(a: Artifact): void;
+
   runAll(): Promise<void>;
   runNext(): Promise<void>;
   reset(): void;
 
-  // NEW: reload catalogue from storage (built-ins + user)
   reloadCatalogue(): Promise<void>;
 };
 
@@ -118,7 +122,7 @@ export function createPipelineModel(deps: PipelineModelDeps): PipelineModel {
   let activePipelineId: PipelineId = firstPipelineId;
   let activeRecipeId: PipelineRecipeId = "default";
 
-  let input: ImageData | null = null;
+  let input: Artifact | null = null;
 
   let statusText = "Idle";
   let lastResult: PipelineRunResult | null = null;
@@ -280,10 +284,14 @@ export function createPipelineModel(deps: PipelineModelDeps): PipelineModel {
     reset();
   }
 
-  function setInputImageData(img: ImageData): void {
-    input = img;
-    resetRunState();
-  }
+function setInputArtifact(a: Artifact): void {
+  input = a;
+  resetRunState();
+}
+
+function setInputImageData(img: ImageData): void {
+  setInputArtifact({ type: "image", width: img.width, height: img.height, image: img });
+}
 
   function buildPlanFromPipeline(p: PipelineDef): PlannedStep[] {
     const enabled = p.ops.filter((x) => x.enabled !== false);
@@ -320,7 +328,7 @@ export function createPipelineModel(deps: PipelineModelDeps): PipelineModel {
       {
         stageId: "pipeline",
         title: "Pipeline",
-        input: "image",
+        input: result.input.type,
         output: stageOut?.type ?? "image",
         ops,
         state: stageState,
@@ -342,207 +350,177 @@ export function createPipelineModel(deps: PipelineModelDeps): PipelineModel {
     }
   }
 
-  async function runAll(): Promise<void> {
-    const p = getActivePipelineDef();
-    if (!p.implemented) {
-      statusText = "Not implemented yet";
-      return;
-    }
-    if (!input) {
-      statusText = "No input image";
-      return;
-    }
-
-    statusText = "Running all…";
-
-    const result = await runPipelineDef({
-      catalogue,
-      pipeline: p,
-      inputImage: input,
-      deps: deps.runner,
-    });
-
-    lastResult = result;
-
-    plan = buildPlanFromPipeline(p);
-    nextIndex = plan.length;
-    currentArtifact = result.output ?? null;
-
-    statusText = result.status === "ok" ? "Done" : result.error ?? "Error";
+async function runAll(): Promise<void> {
+  const p = getActivePipelineDef();
+  if (!p.implemented) {
+    statusText = "Not implemented yet";
+    return;
+  }
+  if (!input) {
+    statusText = "No input";
+    return;
   }
 
-  // src/panel/tabs/pipeline/model.ts
-  // Replace the whole existing runNext() function with this one.
+  statusText = "Running all…";
 
-  async function runNext(): Promise<void> {
-    const p = getActivePipelineDef();
-    if (!p.implemented) {
-      statusText = "Not implemented yet";
-      return;
+  const result = await runPipelineDef({
+    catalogue,
+    pipeline: p,
+    input, // Artifact
+    deps: deps.runner,
+  });
+
+  lastResult = result;
+
+  plan = buildPlanFromPipeline(p);
+  nextIndex = plan.length;
+  currentArtifact = result.output ?? null;
+
+  statusText = result.status === "ok" ? "Done" : result.error ?? "Error";
+}
+ 
+
+async function runNext(): Promise<void> {
+  const p = getActivePipelineDef();
+  if (!p.implemented) {
+    statusText = "Not implemented yet";
+    return;
+  }
+  if (!input) {
+    statusText = "No input";
+    return;
+  }
+
+  if (plan.length === 0) {
+    plan = buildPlanFromPipeline(p);
+    nextIndex = 0;
+
+    currentArtifact = input;
+
+    lastResult = {
+      pipelineId: p.id,
+      title: p.title,
+      status: "ok",
+      input,
+      output: input,
+      ops: [],
+    };
+  }
+
+  if (nextIndex >= plan.length) {
+    statusText = "Done";
+    return;
+  }
+
+  const step = plan[nextIndex]!;
+  const spec = step.opSpec;
+
+  if (!currentArtifact) {
+    currentArtifact = input;
+  }
+
+  try {
+    statusText = `Running: ${spec.title}`;
+
+    // IO check (input)
+    if (currentArtifact.type !== spec.io.input) {
+      throw new Error(`IO mismatch: expected ${spec.io.input}, got ${currentArtifact.type}`);
     }
-    if (!input) {
-      statusText = "No input image";
-      return;
-    }
 
-    if (plan.length === 0) {
-      plan = buildPlanFromPipeline(p);
-      nextIndex = 0;
-      currentArtifact = { type: "image", width: input.width, height: input.height, image: input };
-      lastResult = {
-        pipelineId: p.id,
-        title: p.title,
-        status: "ok",
-        input: { type: "image", width: input.width, height: input.height, image: input },
-        output: { type: "image", width: input.width, height: input.height, image: input },
-        ops: [],
-      };
-    }
+    const params = spec.tuningId ? await deps.runner.getEffectiveParams(spec.tuningId).catch(() => ({})) : {};
 
-    if (nextIndex >= plan.length) {
-      statusText = "Done";
-      return;
-    }
+    let out: Artifact;
 
-    const step = plan[nextIndex]!;
-    const spec = step.opSpec;
+    if (spec.kind === "dispatch") {
+      const { runOp } = await import("../../platform/opsDispatch");
 
-    if (!currentArtifact) {
-      currentArtifact = { type: "image", width: input.width, height: input.height, image: input };
-    }
+      if (currentArtifact.type === "image") {
+        const raw = await runOp(
+          spec.dispatchId as any,
+          { image: currentArtifact.image, width: currentArtifact.width, height: currentArtifact.height } as any,
+        );
 
-    try {
-      statusText = `Running: ${spec.title}`;
-
-      // IO check (input)
-      if (currentArtifact.type !== spec.io.input) {
-        throw new Error(`IO mismatch: expected ${spec.io.input}, got ${currentArtifact.type}`);
-      }
-
-      // NOTE: step-mode execution is still your inline implementation.
-      const params =
-        spec.tuningId ? await deps.runner.getEffectiveParams(spec.tuningId).catch(() => ({})) : {};
-
-      let out: Artifact;
-
-      if (spec.kind === "dispatch") {
-        const { runOp } = await import("../../platform/opsDispatch");
-
-        if (currentArtifact.type === "image") {
-          const raw = await runOp(spec.dispatchId as any, {
-            image: currentArtifact.image,
-            width: currentArtifact.width,
-            height: currentArtifact.height,
-          } as any);
-
-          if (spec.io.output === "image") {
-            const img = raw as ImageData;
-            out = { type: "image", width: img.width, height: img.height, image: img };
-          } else if (spec.io.output === "mask") {
-            out = {
-              type: "mask",
-              width: currentArtifact.width,
-              height: currentArtifact.height,
-              mask: raw as Uint8Array,
-            };
-          } else {
-            throw new Error(`Unsupported dispatch output: ${spec.io.output}`);
-          }
-        } else if (currentArtifact.type === "mask") {
-          const raw = await runOp(spec.dispatchId as any, {
-            mask: (currentArtifact as any).mask,
-            width: currentArtifact.width,
-            height: currentArtifact.height,
-          } as any);
-
-          if (spec.io.output === "mask") {
-            out = {
-              type: "mask",
-              width: currentArtifact.width,
-              height: currentArtifact.height,
-              mask: raw as Uint8Array,
-            };
-          } else if (spec.io.output === "svg") {
-            out = {
-              type: "svg",
-              width: currentArtifact.width,
-              height: currentArtifact.height,
-              svg: raw as string,
-            };
-          } else {
-            throw new Error(`Invalid dispatch output: ${spec.io.output}`);
-          }
+        if (spec.io.output === "image") {
+          const img = raw as ImageData;
+          out = { type: "image", width: img.width, height: img.height, image: img };
+        } else if (spec.io.output === "mask") {
+          out = { type: "mask", width: currentArtifact.width, height: currentArtifact.height, mask: raw as Uint8Array };
+        } else if (spec.io.output === "svg") {
+          out = { type: "svg", width: currentArtifact.width, height: currentArtifact.height, svg: raw as string };
         } else {
-          throw new Error("Dispatch ops cannot take svg input.");
+          throw new Error(`Unsupported dispatch output: ${spec.io.output}`);
+        }
+      } else if (currentArtifact.type === "mask") {
+        const raw = await runOp(
+          spec.dispatchId as any,
+          { mask: (currentArtifact as any).mask, width: currentArtifact.width, height: currentArtifact.height } as any,
+        );
+
+        if (spec.io.output === "mask") {
+          out = { type: "mask", width: currentArtifact.width, height: currentArtifact.height, mask: raw as Uint8Array };
+        } else if (spec.io.output === "svg") {
+          out = { type: "svg", width: currentArtifact.width, height: currentArtifact.height, svg: raw as string };
+        } else {
+          throw new Error(`Invalid dispatch output: ${spec.io.output}`);
         }
       } else {
-        out = await spec.run({ input: currentArtifact, params });
+        // IMPORTANT: dispatch ops do not support svg/imageList/pdf inputs
+        throw new Error(`Dispatch ops cannot take ${currentArtifact.type} input.`);
       }
-
-      // IO check (output)
-      if (out.type !== spec.io.output) {
-        throw new Error(`IO mismatch: expected ${spec.io.output}, got ${out.type}`);
-      }
-
-      const prevOps = lastResult?.ops ?? [];
-      const nextOps: OpRunResult[] = prevOps.concat([
-        {
-          instanceId: step.instanceId,
-          opId: spec.id,
-          title: spec.title,
-          io: spec.io,
-          status: "ok",
-          output: out,
-        },
-      ]);
-
-      lastResult = {
-        pipelineId: p.id,
-        title: p.title,
-        status: "ok",
-        input: { type: "image", width: input.width, height: input.height, image: input },
-        output: out,
-        ops: nextOps,
-      };
-
-      currentArtifact = out;
-      nextIndex += 1;
-
-      statusText = nextIndex >= plan.length ? "Done" : "Ready";
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      statusText = `Error: ${spec.title} — ${msg}`;
-
-      const prevOps = lastResult?.ops ?? [];
-      const nextOps: OpRunResult[] = prevOps.concat([
-        {
-          instanceId: step.instanceId,
-          opId: spec.id,
-          title: spec.title,
-          io: spec.io,
-          status: "error",
-          error: msg,
-        },
-      ]);
-
-      lastResult = {
-        pipelineId: p.id,
-        title: p.title,
-        status: "error",
-        error: msg,
-        input: { type: "image", width: input.width, height: input.height, image: input },
-        ops: nextOps,
-      };
-
-      deps.runner.debug("pipeline next-step failed", {
-        pipelineId: p.id,
-        recipeId: activeRecipeId,
-        instanceId: step.instanceId,
-        opId: spec.id,
-        error: msg,
-      });
+    } else {
+      out = await spec.run({ input: currentArtifact, params });
     }
+
+    // IO check (output)
+    if (out.type !== spec.io.output) {
+      throw new Error(`IO mismatch: expected ${spec.io.output}, got ${out.type}`);
+    }
+
+    const prevOps = lastResult?.ops ?? [];
+    const nextOps: OpRunResult[] = prevOps.concat([
+      { instanceId: step.instanceId, opId: spec.id, title: spec.title, io: spec.io, status: "ok", output: out },
+    ]);
+
+    lastResult = {
+      pipelineId: p.id,
+      title: p.title,
+      status: "ok",
+      input,
+      output: out,
+      ops: nextOps,
+    };
+
+    currentArtifact = out;
+    nextIndex += 1;
+
+    statusText = nextIndex >= plan.length ? "Done" : "Ready";
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    statusText = `Error: ${spec.title} — ${msg}`;
+
+    const prevOps = lastResult?.ops ?? [];
+    const nextOps: OpRunResult[] = prevOps.concat([
+      { instanceId: step.instanceId, opId: spec.id, title: spec.title, io: spec.io, status: "error", error: msg },
+    ]);
+
+    lastResult = {
+      pipelineId: p.id,
+      title: p.title,
+      status: "error",
+      error: msg,
+      input,
+      ops: nextOps,
+    };
+
+    deps.runner.debug("pipeline next-step failed", {
+      pipelineId: p.id,
+      recipeId: activeRecipeId,
+      instanceId: step.instanceId,
+      opId: spec.id,
+      error: msg,
+    });
   }
+}
 
 
   function getVm(): PipelineVm {
@@ -565,7 +543,9 @@ export function createPipelineModel(deps: PipelineModelDeps): PipelineModel {
 
       stages: lastResult ? mapResultToSingleStage(lastResult) : [],
 
-      input: input ? { width: input.width, height: input.height, data: input } : undefined,
+      input: input && input.type === "image"
+  ? { width: input.width, height: input.height, data: input.image }
+  : undefined,
 
       nextIndex,
       totalOps: plan.length || pipeline.ops.filter((x) => x.enabled !== false).length,
@@ -580,14 +560,15 @@ export function createPipelineModel(deps: PipelineModelDeps): PipelineModel {
   // Initial state
   reset();
 
-  return {
-    getVm,
-    setActivePipeline,
-    setActiveRecipe,
-    setInputImageData,
-    runAll,
-    runNext,
-    reset,
-    reloadCatalogue,
-  };
+return {
+  getVm,
+  setActivePipeline,
+  setActiveRecipe,
+  setInputImageData,
+  setInputArtifact, // NEW
+  runAll,
+  runNext,
+  reset,
+  reloadCatalogue,
+};
 }

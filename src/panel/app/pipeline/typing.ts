@@ -65,11 +65,22 @@ export function validateLinearChainTypes(args: {
 }): LinearTypingResult {
   const { specs, instances, startType } = args;
 
+  // Important for Builder + identity pipelines:
+  // An empty pipeline is valid and just preserves the startType.
   if (specs.length === 0) {
+    return {
+      ok: true,
+      startType,
+      endType: startType,
+      steps: [],
+    };
+  }
+
+  if (instances.length !== specs.length) {
     return {
       ok: false,
       startType,
-      error: "Pipeline has no ops",
+      error: `Typing internal mismatch: instances(${instances.length}) != specs(${specs.length})`,
       steps: [],
     };
   }
@@ -84,6 +95,10 @@ export function validateLinearChainTypes(args: {
     const expected = spec.io.input;
     const ok = expected === cur;
 
+    const err = ok
+      ? undefined
+      : `Chain IO mismatch at "${spec.title}" (${spec.id}): needs ${expected} but current is ${cur}`;
+
     steps.push({
       index: i,
       instanceId: inst.instanceId,
@@ -93,14 +108,14 @@ export function validateLinearChainTypes(args: {
       actualInput: cur,
       output: spec.io.output,
       ok,
-      error: ok ? undefined : `Chain IO mismatch at "${spec.title}": needs ${expected} but current is ${cur}`,
+      error: err,
     });
 
     if (!ok) {
       return {
         ok: false,
         startType,
-        error: steps[steps.length - 1]!.error,
+        error: err,
         steps,
       };
     }
@@ -118,11 +133,13 @@ export function typeAtIndex(args: {
 }): ArtifactType {
   const { specs, startType, index } = args;
   if (index <= 0) return startType;
+  if (specs.length === 0) return startType;
 
   let cur: ArtifactType = startType;
   for (let i = 0; i < Math.min(index, specs.length); i++) {
     const spec = specs[i]!;
-    if (spec.io.input !== cur) return cur; // safety for invalid chain
+    // Safety for invalid chains: stop at the last known-good type.
+    if (spec.io.input !== cur) return cur;
     cur = spec.io.output;
   }
   return cur;

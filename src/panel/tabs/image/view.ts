@@ -5,7 +5,7 @@ import type { imageTabState } from "./model";
 export type imageTabView = {
   setHover: (on: boolean) => void;
   drawImageToSource: (img: HTMLImageElement) => void;
-  showLoadOk: (filename: string) => void;
+  showLoadOk: (filenames: string[]) => void;
   showLoadError: (message: string) => void;
 };
 
@@ -39,15 +39,23 @@ export function createMageTabView(dom: Dom, state: imageTabState): imageTabView 
     drawImageContain(dom.srcCanvasEl, img);
   }
 
-  function showLoadOk(filename: string): void {
+  function showLoadOk(filenames: string[]): void {
     state.lastError = undefined;
-    state.loadedImageName = filename;
-    state.hasImage = true;
+
+    const names = Array.isArray(filenames) ? filenames.filter(Boolean) : [];
+    state.loadedImageNames = names;
+    state.loadedCount = names.length;
+
+    state.loadedImageName = names[0] ?? null; // keep old field consistent
+    state.hasImage = names.length > 0;
   }
 
   function showLoadError(message: string): void {
     state.lastError = message;
     state.hasImage = false;
+    state.loadedImageName = null;
+    state.loadedImageNames = [];
+    state.loadedCount = 0;
   }
 
   return { setHover, drawImageToSource, showLoadOk, showLoadError };
