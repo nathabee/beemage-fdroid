@@ -15,9 +15,9 @@ SourceCode: https://github.com/nathabee/beemage
 IssueTracker: https://github.com/nathabee/beemage/issues
 Name: BeeMage App  
 Builds:
-  - versionName: 0.3.1
-    versionCode: 1003001
-    commit: v0.3.1-fdroid
+  - versionName: 0.3.2
+    versionCode: 1003002
+    commit: v0.3.2-fdroid
     subdir: apps/android-native    
     sudo:
       - apt-get update
@@ -33,5 +33,5 @@ Builds:
       - apps/android-web/node_modules
 
 UpdateCheckMode: Tags
-CurrentVersion: 0.3.1
-CurrentVersionCode: 1003001
+CurrentVersion: 0.3.2
+CurrentVersionCode: 1003002

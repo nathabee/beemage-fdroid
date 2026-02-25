@@ -11,7 +11,7 @@ import type { TuningController } from "../../app/tuning/controller";
 import type { ParamValue } from "../../app/tuning/types";
 import { setLastPipelineOutputFromVm } from "../../app/pipeline/outputStore";
 import { onPipelineStorageChanged, type PipelineStorageChange } from "../../app/pipeline/storageSignals";
-
+import type { Artifact, ImageArtifact } from "../../app/pipeline/type";
 
 export function createPipelineTab(dom: Dom, _bus: Bus, tuning: TuningController) {
   const model = createPipelineModel({
@@ -133,8 +133,8 @@ export function createPipelineTab(dom: Dom, _bus: Bus, tuning: TuningController)
   async function resetAndReloadFromStorage(): Promise<void> {
     model.reset();
 
-    const img = readSourceImageData();
-    if (img) model.setInputImageData(img);
+    const a = readSourceInputArtifact();
+    if (a) model.setInputArtifact(a);
 
     // Publish cleared state for other tabs
     setLastPipelineOutputFromVm(model.getVm());
@@ -277,7 +277,58 @@ export function createPipelineTab(dom: Dom, _bus: Bus, tuning: TuningController)
     mountPipelineTuningForPipelineId(pipelineId);
   }
 
-  function readSourceImageData(): ImageData | null {
+  function makeImageArtifact(img: ImageData): ImageArtifact {
+    return { type: "image", width: img.width, height: img.height, image: img };
+  }
+
+  /**
+   * Phase 3: Source of truth for pipeline input is app__.input__ (Image tab publishes it).
+   * Back-compat fallback: if app__.input__ is missing, use srcCanvas as before.
+   *
+   * Expected placeholder shapes (tolerant):
+   * - { kind: "image", image: ImageData }
+   * - { kind: "image", data: ImageData }
+   * - { kind: "imageList", images: ImageData[] }
+   * - { kind: "imageList", items: ImageData[] }
+   */
+  function readSourceInputArtifact(): Artifact | null {
+    const app = (globalThis as any)?.app__;
+    const input = app?.input__;
+
+    // 1) Preferred: app__.input__ (multi-image aware)
+    if (input && typeof input === "object") {
+      const kind = String((input as any).kind ?? "");
+
+      if (kind === "image") {
+        const img = (input as any).image ?? (input as any).data;
+        if (img && typeof img === "object" && typeof img.width === "number" && typeof img.height === "number") {
+          return makeImageArtifact(img as ImageData);
+        }
+      }
+
+      if (kind === "imageList") {
+        const images = (input as any).images ?? (input as any).items;
+        if (Array.isArray(images) && images.length > 0) {
+          const items = images
+            .filter((x: any) => x && typeof x.width === "number" && typeof x.height === "number")
+            .map((img: any) => makeImageArtifact(img as ImageData));
+
+          if (items.length > 0) {
+            return { type: "imageList", items };
+          }
+        }
+      }
+
+      // If app__.input__ exists but is malformed, fall through to canvas fallback.
+      debugTrace.append({
+        scope: "panel",
+        kind: "info",
+        message: "Pipeline tab: app__.input__ present but unsupported/malformed; falling back to srcCanvas",
+        meta: { kind },
+      });
+    }
+
+    // 2) Fallback: srcCanvas (legacy single-image path)
     const src = dom.srcCanvasEl;
     const w = src.width;
     const h = src.height;
@@ -286,22 +337,30 @@ export function createPipelineTab(dom: Dom, _bus: Bus, tuning: TuningController)
     const ctx = src.getContext("2d", { willReadFrequently: true }) as CanvasRenderingContext2D | null;
     if (!ctx) return null;
 
-    return ctx.getImageData(0, 0, w, h);
+    const img = ctx.getImageData(0, 0, w, h);
+    return makeImageArtifact(img);
   }
 
   function seedInputOnceIfMissing(): void {
     const vm = model.getVm();
     if (vm.input) return;
-    const img = readSourceImageData();
-    if (!img) return;
-    model.setInputImageData(img);
+
+    const a = readSourceInputArtifact();
+    if (!a) return;
+
+    model.setInputArtifact(a);
   }
 
   function refreshInputForRun(): void {
-    const img = readSourceImageData();
-    if (!img) return;
-    model.setInputImageData(img);
+    const a = readSourceInputArtifact();
+    if (!a) return;
+
+    model.setInputArtifact(a);
   }
+
+
+
+
 
   async function syncPipelineFromTuning(): Promise<void> {
     const params = await tuning.getEffectiveParams("pipeline").catch(() => ({} as Record<string, ParamValue>));
