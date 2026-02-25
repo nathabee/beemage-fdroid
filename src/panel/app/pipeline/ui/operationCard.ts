@@ -8,7 +8,7 @@ export type PortStyle = "chip" | "puzzle";
 export type CardStyle = "plain" | "puzzleFrame";
 
 type ConnectorShape = "triangle" | "circle" | "rect";
-
+ 
 
 
 export type OperationCardOptions = {
@@ -70,6 +70,8 @@ function defaultPortClass(type: PortType): string {
   if (t === "image") return "opPort--image";
   if (t === "mask") return "opPort--mask";
   if (t === "svg") return "opPort--svg";
+  if (t === "imagelist") return "opPort--imageList";
+  if (t === "pdf") return "opPort--pdf";
   return "opPort--unknown";
 }
 
@@ -278,22 +280,28 @@ function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));
 }
 
-function typeFamily(type: PortType): "image" | "mask" | "svg" | "unknown" {
+ 
+ 
+
+function typeFamily(type: PortType): "image" | "mask" | "svg" | "rect" | "unknown" {
   const t = String(type || "").toLowerCase();
   if (t === "image") return "image";
   if (t === "mask") return "mask";
   if (t === "svg") return "svg";
+  if (t === "imagelist") return "image"; // image-like connector
+  if (t === "pdf") return "rect"; // document-like connector
   return "unknown";
 }
+ 
 
-function connectorDims(fam: "image" | "mask" | "svg" | "unknown"): { w: number; d: number; shape: ConnectorShape } {
-  // d = depth (how far notch/plug goes into/out of the frame)
-  // keep these modest; too large makes the connector scream.
+function connectorDims(fam: "image" | "mask" | "svg" | "rect" | "unknown"): { w: number; d: number; shape: ConnectorShape } {
   if (fam === "image") return { w: 34, d: 7, shape: "circle" };
   if (fam === "svg") return { w: 30, d: 7, shape: "triangle" };
   if (fam === "mask") return { w: 28, d: 6, shape: "rect" };
+  if (fam === "rect") return { w: 30, d: 6, shape: "rect" }; // pdf
   return { w: 26, d: 6, shape: "rect" };
 }
+ 
 
 function svgToDataUrl(svg: string): string {
   // Encode minimal safely for data URL usage
@@ -303,8 +311,7 @@ function svgToDataUrl(svg: string): string {
   return `url("data:image/svg+xml,${encoded}")`;
 }
 
-
-// src/panel/app/pipeline/ui/operationCard.ts
+ 
 
 function applyPuzzleMaskFrame(args: {
   root: HTMLElement;
