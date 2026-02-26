@@ -103,7 +103,7 @@ function computeEndType(specs: ReadonlyArray<OpSpec>, startType: ArtifactType): 
     description: "",
     implemented: true,
     opIds: [],
-    startType: "image", // NEW
+    startType: "imageList",
   };
 
   function insertOpAt(index: number, opId: string): void {

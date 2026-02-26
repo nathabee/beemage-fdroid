@@ -1,8 +1,8 @@
-// src/panel/tabs/image/tab.ts
 import type { Dom } from "../../app/dom";
 import type { Bus } from "../../app/bus";
 
 import { createMageTabView } from "./view";
+import type { ImageTabViewHandlers } from "./view";
 import { createInitialMageTabState } from "./model";
 
 import * as actionLog from "../../../shared/actionLog";
@@ -19,7 +19,44 @@ type LoadedImage = {
 
 export function createMageTab(dom: Dom, _bus: Bus) {
   const state = createInitialMageTabState();
-  const view = createMageTabView(dom, state);
+
+  // Keep the ordered list here. The order is what we publish to app__.input__.
+  let loadedImages: LoadedImage[] = [];
+
+  const handlers: ImageTabViewHandlers = {
+    onMove: (fromIndex: number, toIndex: number) => {
+      if (fromIndex === toIndex) return;
+      if (fromIndex < 0 || fromIndex >= loadedImages.length) return;
+      if (toIndex < 0 || toIndex >= loadedImages.length) return;
+
+      const next = loadedImages.slice();
+      const [moved] = next.splice(fromIndex, 1);
+      if (!moved) return;
+      next.splice(toIndex, 0, moved);
+
+      loadedImages = next;
+
+      // Preview remains "first image"
+      redrawPreviewFromFirst();
+      publishCurrentInput();
+      view.showLoadOk(loadedImages.map((x) => x.name));
+
+      actionLog.append({
+        scope: "panel",
+        kind: "info",
+        message: `Input order updated: ${fromIndex + 1} → ${toIndex + 1}`,
+      });
+
+      debugTrace.append({
+        scope: "panel",
+        kind: "info",
+        message: "Mage input reordered",
+        meta: { fromIndex, toIndex, names: loadedImages.slice(0, 10).map((x) => x.name) },
+      });
+    },
+  };
+
+  const view = createMageTabView(dom, state, handlers);
 
   async function decodeImageFromFile(file: File): Promise<HTMLImageElement> {
     if (!file.type.startsWith("image/")) {
@@ -65,12 +102,41 @@ export function createMageTab(dom: Dom, _bus: Bus) {
 
   function publishInputPlaceholder(payload: {
     kind: "image" | "imageList";
-    images: LoadedImage[];
+    images: ImageData[];
+    names?: string[];
     createdAtMs: number;
   }): void {
     // Temporary bridge until we formalize this into cache.ts / pipeline input store.
     (globalThis as any).app__ = (globalThis as any).app__ ?? {};
     (globalThis as any).app__.input__ = payload;
+  }
+
+  function publishCurrentInput(): void {
+    const imgs = loadedImages.map((x) => x.imageData);
+    const names = loadedImages.map((x) => x.name);
+
+    publishInputPlaceholder({
+      kind: imgs.length === 1 ? "image" : "imageList",
+      images: imgs,
+      names,
+      createdAtMs: Date.now(),
+    });
+  }
+
+  function redrawPreviewFromFirst(): void {
+    // Keep current UX: draw first image on srcCanvas as preview.
+    const first = loadedImages[0];
+    if (!first) return;
+
+    // Recreate an HTMLImageElement is expensive; instead draw ImageData directly.
+    const c = dom.srcCanvasEl;
+    c.width = Math.max(1, first.width);
+    c.height = Math.max(1, first.height);
+
+    const ctx = c.getContext("2d", { willReadFrequently: true }) as CanvasRenderingContext2D | null;
+    if (!ctx) return;
+
+    ctx.putImageData(first.imageData, 0, 0);
   }
 
   async function loadFilesIntoSourceCanvas(files: File[]): Promise<void> {
@@ -79,10 +145,8 @@ export function createMageTab(dom: Dom, _bus: Bus) {
       throw new Error("No supported images found.");
     }
 
-    // Decode all; draw the first as preview (keeps current UX)
+    // Decode all
     const decoded = await Promise.all(imgFiles.map(decodeImageFromFile));
-
-    view.drawImageToSource(decoded[0]!);
 
     const loaded: LoadedImage[] = decoded.map((img, i) => {
       const f = imgFiles[i]!;
@@ -99,19 +163,20 @@ export function createMageTab(dom: Dom, _bus: Bus) {
       };
     });
 
+    loadedImages = loaded;
+
+    // Preview (first)
+    view.drawImageToSource(decoded[0]!);
+
     view.showLoadOk(imgFiles.map((f) => f.name));
 
-    // Publish as "image" or "imageList"
-    publishInputPlaceholder({
-      kind: loaded.length === 1 ? "image" : "imageList",
-      images: loaded,
-      createdAtMs: Date.now(),
-    });
+    // Publish as ImageData[] (this is the important fix)
+    publishCurrentInput();
 
     actionLog.append({
       scope: "panel",
       kind: "info",
-      message: loaded.length === 1 ? `Input loaded: ${loaded[0]!.name}` : `Inputs loaded: ${loaded.length} images`,
+      message: loadedImages.length === 1 ? `Input loaded: ${loadedImages[0]!.name}` : `Inputs loaded: ${loadedImages.length} images`,
     });
 
     debugTrace.append({
@@ -119,10 +184,10 @@ export function createMageTab(dom: Dom, _bus: Bus) {
       kind: "info",
       message: "Mage input loaded",
       meta: {
-        count: loaded.length,
-        names: loaded.slice(0, 10).map((x) => x.name),
-        first: loaded[0]
-          ? { name: loaded[0].name, w: loaded[0].width, h: loaded[0].height, type: loaded[0].type }
+        count: loadedImages.length,
+        names: loadedImages.slice(0, 10).map((x) => x.name),
+        first: loadedImages[0]
+          ? { name: loadedImages[0].name, w: loadedImages[0].width, h: loadedImages[0].height, type: loadedImages[0].type }
           : null,
       },
     });

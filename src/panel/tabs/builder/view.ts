@@ -225,78 +225,138 @@ export function createBuilderView(args: { dom: Dom; handlers: BuilderViewHandler
   }
 
 
+ 
+function renderOps(ops: ReadonlyArray<OpSpec>, vm?: BuilderVm): void {
+  const m = ensureOpsMount();
+  m.innerHTML = "";
 
-  function renderOps(ops: ReadonlyArray<OpSpec>, vm?: BuilderVm): void {
-    const m = ensureOpsMount();
-    m.innerHTML = "";
+  const card = el("div", { class: "card", style: "padding:10px;" });
+  card.appendChild(el("div", { class: "cardTitle" }, "All operations"));
 
-    const card = el("div", { class: "card", style: "padding:10px;" });
-    card.appendChild(el("div", { class: "cardTitle" }, "All operations"));
+  // Local state for search + dedupe (persist in closure)
+  // If you want this persisted across renders, lift these variables above renderOps.
+  let query = (vm as any)?._opsQuery ?? "";
+  let dedupe = (vm as any)?._opsDedupe ?? true;
 
-    // Controls row: IO filters (ONLY for operations)
-    const controls = el("div", {
-      class: "row",
-      style: "align-items:center; gap:10px; flex-wrap:wrap; margin-top:10px;",
+  const controls = el("div", {
+    class: "row",
+    style: "align-items:center; gap:10px; flex-wrap:wrap; margin-top:10px;",
+  });
+
+  // Search
+  const lblQ = el("label", { class: "fieldInline" });
+  lblQ.appendChild(el("span", {}, "Search"));
+  const inpQ = el("input", {
+    type: "text",
+    value: query,
+    placeholder: "Type to filter (title / id / group)…",
+    style: "min-width:260px;",
+  }) as HTMLInputElement;
+
+  // Dedupe checkbox
+  const lblDedupe = el("label", { class: "fieldInline" });
+  lblDedupe.appendChild(el("span", {}, "Hide duplicates"));
+  const chkDedupe = el("input", { type: "checkbox" }) as HTMLInputElement;
+  chkDedupe.checked = dedupe;
+
+  // Existing IO filters
+  const lblIn = el("label", { class: "fieldInline" });
+  lblIn.appendChild(el("span", {}, "Filter input"));
+  selFilterInput = buildTypeSelect(String(filterInput), (v) => {
+    filterInput = (v === "all" ? "all" : (v as any));
+    renderOps(ops, vm);
+  });
+  lblIn.appendChild(selFilterInput);
+
+  const lblOut = el("label", { class: "fieldInline" });
+  lblOut.appendChild(el("span", {}, "Filter output"));
+  selFilterOutput = buildTypeSelect(String(filterOutput), (v) => {
+    filterOutput = (v === "all" ? "all" : (v as any));
+    renderOps(ops, vm);
+  });
+  lblOut.appendChild(selFilterOutput);
+
+  inpQ.addEventListener("input", () => {
+    query = inpQ.value;
+    // stash on vm object if present (cheap persistence across rerenders)
+    if (vm) (vm as any)._opsQuery = query;
+    renderOps(ops, vm);
+  });
+
+  chkDedupe.addEventListener("change", () => {
+    dedupe = chkDedupe.checked;
+    if (vm) (vm as any)._opsDedupe = dedupe;
+    renderOps(ops, vm);
+  });
+
+  controls.appendChild(lblQ);
+  controls.appendChild(inpQ);
+  controls.appendChild(lblDedupe);
+  controls.appendChild(chkDedupe);
+  controls.appendChild(lblIn);
+  controls.appendChild(lblOut);
+
+  card.appendChild(controls);
+
+  // Apply filters
+  const q = query.trim().toLowerCase();
+
+  let filtered = ops.filter(passesFilter);
+
+  if (q) {
+    filtered = filtered.filter((op) => {
+      const hay =
+        `${op.title} ${op.id} ${String((op as any).group ?? "")} ${String((op as any).dispatchId ?? "")}`.toLowerCase();
+      return hay.includes(q);
     });
-
-    const lblIn = el("label", { class: "fieldInline" });
-    lblIn.appendChild(el("span", {}, "Filter input"));
-    selFilterInput = buildTypeSelect(String(filterInput), (v) => {
-      filterInput = (v === "all" ? "all" : (v as any));
-      // re-render ops only
-      renderOps(ops, vm);
-    });
-    lblIn.appendChild(selFilterInput);
-
-    const lblOut = el("label", { class: "fieldInline" });
-    lblOut.appendChild(el("span", {}, "Filter output"));
-    selFilterOutput = buildTypeSelect(String(filterOutput), (v) => {
-      filterOutput = (v === "all" ? "all" : (v as any));
-      // re-render ops only
-      renderOps(ops, vm);
-    });
-    lblOut.appendChild(selFilterOutput);
-
-    controls.appendChild(lblIn);
-    controls.appendChild(lblOut);
-    card.appendChild(controls);
-
-    const filtered = ops.filter(passesFilter);
-
-    if (!filtered.length) {
-      card.appendChild(
-        el("div", { class: "muted", style: "font-size:12px; margin-top:10px;" }, "No operations match the filter."),
-      );
-      m.appendChild(card);
-      return;
-    }
-
-    const grid = el("div", { class: "opsGrid", style: "margin-top:10px;" }) as HTMLDivElement;
-
-    for (const op of filtered) {
-      const cardEl = createOperationCard(op, {
-        compact: true,
-        showGroup: true,
-        showId: true,
-        portStyle: "puzzle",
-        cardStyle: "plain",
-      });
-
-      // Make draggable for the playground
-      cardEl.setAttribute("draggable", "true");
-      cardEl.addEventListener("dragstart", (ev) => {
-        ev.dataTransfer?.setData("application/x-beemage-opid", op.id);
-        ev.dataTransfer?.setData("text/plain", op.id);
-        if (ev.dataTransfer) ev.dataTransfer.effectAllowed = "copy";
-      });
-
-      grid.appendChild(cardEl);
-    }
-
-
-    card.appendChild(grid);
-    m.appendChild(card);
   }
+
+  if (dedupe) {
+    // Dedupe key: same "concept" even if defined for different groups.
+    // This collapses seg/edge duplicates while keeping unique ops.
+    const seen = new Set<string>();
+    const out: OpSpec[] = [];
+    for (const op of filtered) {
+      const key = `${op.title}|${op.io.input}->${op.io.output}|${(op as any).kind}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(op);
+    }
+    filtered = out;
+  }
+
+  if (!filtered.length) {
+    card.appendChild(
+      el("div", { class: "muted", style: "font-size:12px; margin-top:10px;" }, "No operations match the filters."),
+    );
+    m.appendChild(card);
+    return;
+  }
+
+  const grid = el("div", { class: "opsGrid", style: "margin-top:10px;" }) as HTMLDivElement;
+
+  for (const op of filtered) {
+    const cardEl = createOperationCard(op, {
+      compact: true,
+      showGroup: true,
+      showId: true,
+      portStyle: "puzzle",
+      cardStyle: "plain",
+    });
+
+    cardEl.setAttribute("draggable", "true");
+    cardEl.addEventListener("dragstart", (ev) => {
+      ev.dataTransfer?.setData("application/x-beemage-opid", op.id);
+      ev.dataTransfer?.setData("text/plain", op.id);
+      if (ev.dataTransfer) ev.dataTransfer.effectAllowed = "copy";
+    });
+
+    grid.appendChild(cardEl);
+  }
+
+  card.appendChild(grid);
+  m.appendChild(card);
+}
 
 
 

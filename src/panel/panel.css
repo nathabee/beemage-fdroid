@@ -40,11 +40,24 @@ body {
 }
 
 /* Keep panel comfortable in narrow widths */
+/* -----------------------------
+   Layout container
+----------------------------- */
+
+/* Use the available width on desktop, keep comfortable padding */
 .wrap {
-  max-width: 980px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
   padding: 14px;
 }
+
+/* Optional: nicer spacing on very large screens */
+@media (min-width: 1200px) {
+  .wrap {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+} 
 
 h1 {
   margin: 6px 0 10px;
@@ -1064,11 +1077,50 @@ input[type="color"] {
 /* =========================================
    Builder grid helper
    ========================================= */
+ 
+ 
 
+/* Make the builder columns behave like real columns (no spill) */
+[data-role="builderLayout"] {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+/* CRITICAL: allow flex children to shrink and clip overflow correctly */
+[data-role="builderLeftCol"],
+[data-role="builderRightCol"] {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Keep ops list from spilling into the playground */
+[data-role="builderLeftCol"] {
+  overflow: auto;
+}
+
+/* Playground also should not be overlapped by neighbors */
+[data-role="builderRightCol"] {
+  overflow: auto;
+}
+
+/* Make ops grid responsive and prevent cards from forcing overflow */
 .opsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+/* Ensure op cards don't exceed their grid cell */
+.opsGrid .opCard {
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 1100px) {
+  .opsGrid {
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+  }
 }
 
 /* =========================================

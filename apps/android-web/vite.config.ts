@@ -294,6 +294,7 @@ export default defineConfig(({ command }) => {
         "@shared": path.resolve(repoRoot, "src/shared"),
         "@panel": path.resolve(repoRoot, "src/panel"),
         "@src": path.resolve(repoRoot, "src"),
+        "@app/pdf": path.resolve(__dirname, "src/app/pdf.ts"),
       },
     },
 

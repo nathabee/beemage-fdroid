@@ -1,0 +1,1 @@
+Support display of multiple input images in the Image tab, including manual reordering (define explicit sequence for array-based pipelines)
